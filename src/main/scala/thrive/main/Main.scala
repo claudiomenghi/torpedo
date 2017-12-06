@@ -35,13 +35,16 @@ object Main {
   def main(args: Array[String]): Unit = {
     val g = AtomicFormula('g);
     val r = AtomicFormula('r);
-    val s0 = State('s0, !g, r);
+    val s0 = State('s0, true, !g, r);
     val s1 = State('s1, g, !r);
     val s2 = State('s2);
-    val ks = PartialKripkeStructure(List(s0, s1, s2), List(s0 -> s1, s0 -> s2, s1 -> s0, s2 -> s0), Set(s0));
+    val ks = PartialKripkeStructure("semaphore", List(s0, s1, s2), List(s0 -> s1, s0 -> s2, s1 -> s0, s2 -> s0));
+    ks.writeXML("examples/semaphore.xml");
+
     val phi1 = G(F(r));
     val phi2 = G(F(g));
     val phi3 = G(r -> G(g));
+
 
     val solver = PLTLMup;
     checkProperty("phi1", phi1, ks, solver);
