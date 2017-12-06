@@ -23,6 +23,8 @@ import thrive.mc._
 import thrive.solver.{SATISFIABLE, Solver, UNSATISFIABLE}
 import thrive.utilities.Writer
 
+import scala.xml.{Node, XML}
+
 case class PartialKripkeStructure(states : List[State], transitions : List[Transition], initialStates : Set[State]) {
 
   private final val USE_SLOW_STATE_PREDICATE = true;
@@ -103,6 +105,48 @@ case class PartialKripkeStructure(states : List[State], transitions : List[Trans
         else POSSIBLY_SATISFIED;
       }
     }
+  }
+
+}
+
+object PartialKripkeStructure {
+
+  private def extractLiteral(node : Node) : Option[Literal] = {
+    val name = node.attributes.asAttrMap("name");
+    val value = node.attributes.asAttrMap("value");
+    value match {
+      case "T" => Some(AtomicFormula(name));
+      case "F" => Some(!AtomicFormula(name));
+      case "M" => None;
+    }
+  }
+
+  private def extractNode(node : Node) : (State, Boolean) = {
+    val isInitial = node.attributes.asAttrMap.get("xbel:initial").exists(_.toLowerCase == "true");
+    val name = node.attributes.asAttrMap("ID");
+    val literals = (node \ "attr").flatMap(extractLiteral);
+    (State(name, literals), isInitial);
+  }
+
+  private def extractTransition(states : Seq[State])(node : Node) : Transition = {
+    val attributes = node.attributes.asAttrMap;
+    val stateMap = states.map(s => s.name -> s).toMap;
+    val from = attributes("from");
+    val to = attributes("to");
+    Transition(stateMap(from), stateMap(to));
+  }
+
+  private def extractGraph(node : Node) : PartialKripkeStructure = {
+    val nodes = (node \ "node").map(extractNode);
+    val states = nodes.map(_._1);
+    val initialStates = nodes.filter(_._2).map(_._1);
+    val transitions = (node \ "edge").map(extractTransition(states));
+    PartialKripkeStructure(states.toList, transitions.toList, initialStates.toSet);
+  }
+
+  def apply(filename : String) : Seq[PartialKripkeStructure] = {
+    val document = XML.loadFile(filename);
+    (document \ "graph").map(extractGraph);
   }
 
 }
