@@ -17,9 +17,9 @@
   */
 package thrive.pks
 
-import thrive.ltl.{AtomicFormula, Conjunction, Literal, LtlFormula}
+import thrive.ltl._
 
-case class State(name : String, literals : Seq[Literal]) {
+case class State(name : String, isInitial : Boolean, literals : Seq[Literal]) {
 
   def atomicFormulae : Set[AtomicFormula] = literals.map(_.atomicFormula).toSet;
 
@@ -33,10 +33,29 @@ case class State(name : String, literals : Seq[Literal]) {
     (assignedLiterals.map((_, false)) ++ missingLiterals.map(f).map((_, true))).toSeq;
   }
 
+  private def literalsToXML(atomicFormulae : Set[AtomicFormula]) : Seq[String] = {
+    def literalValue(literal: Literal) : String =
+      literal match {
+        case _: NegatedAtomicFormula => "F";
+        case _ => "T";
+      }
+
+    val tf = literals.map(l => l.atomicFormula.toXML(literalValue(l)));
+    val maybe = atomicFormulae.diff(literals.map(_.atomicFormula).toSet).map(_.atomicFormula.toXML("M"));
+    tf ++ maybe;
+  }
+
+  private def initialXML : String = if(isInitial) " xbel:initial='true'" else "";
+
+  def toXML(atomicFormulae : Set[AtomicFormula]) : Seq[String] =
+    ("<node ID='" + name + "'" + initialXML + ">") +: literalsToXML(atomicFormulae).map(l => "\t" + l) :+ "</node>";
+
 }
 
 object State{
 
-  def apply(id : Symbol, atoms : Literal*) : State = State(id.name, atoms);
+  def apply(id : Symbol, isInitial : Boolean, atoms : Literal*) : State = State(id.name, isInitial, atoms);
+
+  def apply(id : Symbol, atoms : Literal*) : State = State(id.name, isInitial = false, atoms);
 
 }

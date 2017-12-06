@@ -23,6 +23,8 @@ case class AtomicFormula(id : String) extends Literal {
 
   def negative : AugmentedAtomicFormula = new AugmentedAtomicFormula(id, false);
 
+  def toXML(value : String) : String = "<attr type='prop' name='" + id + "' value='" + value + "'/>";
+
   override def unary_! : Literal = NegatedAtomicFormula(this);
 
   override def toString: String = id;

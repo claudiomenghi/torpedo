@@ -25,7 +25,9 @@ import thrive.utilities.Writer
 
 import scala.xml.{Node, XML}
 
-case class PartialKripkeStructure(states : List[State], transitions : List[Transition], initialStates : Set[State]) {
+case class PartialKripkeStructure(name : String, states : List[State], transitions : List[Transition]) {
+
+  private val initialStates : Set[State] = states.filter(_.isInitial).toSet;
 
   private final val USE_SLOW_STATE_PREDICATE = true;
 
@@ -107,6 +109,17 @@ case class PartialKripkeStructure(states : List[State], transitions : List[Trans
     }
   }
 
+  def toXML : Seq[String] = {
+    val header = "<gxl xmlns:xbel='www.cs.toronto.edu/xbel' xmlns:xlink='xlink'>";
+    val graph = "\t<graph ID='" + name + "' edgemode='directed'>";
+    val pks = states.flatMap(_.toXML(atomicFormulae) :+ "") ++ transitions.flatMap(_.toXML :+ "");
+    val endGraph= "\t</graph>";
+    val footer = "</gxl>";
+    Seq(header, graph, "") ++ pks.map(l => "\t\t" + l) ++ Seq(endGraph, footer);
+  }
+
+  def writeXML(filename : String) : Unit = Writer.write(filename, toXML);
+
 }
 
 object PartialKripkeStructure {
@@ -121,11 +134,11 @@ object PartialKripkeStructure {
     }
   }
 
-  private def extractNode(node : Node) : (State, Boolean) = {
+  private def extractNode(node : Node) : State = {
     val isInitial = node.attributes.asAttrMap.get("xbel:initial").exists(_.toLowerCase == "true");
     val name = node.attributes.asAttrMap("ID");
     val literals = (node \ "attr").flatMap(extractLiteral);
-    (State(name, literals), isInitial);
+    State(name, isInitial, literals);
   }
 
   private def extractTransition(states : Seq[State])(node : Node) : Transition = {
@@ -137,11 +150,9 @@ object PartialKripkeStructure {
   }
 
   private def extractGraph(node : Node) : PartialKripkeStructure = {
-    val nodes = (node \ "node").map(extractNode);
-    val states = nodes.map(_._1);
-    val initialStates = nodes.filter(_._2).map(_._1);
+    val states = (node \ "node").map(extractNode);
     val transitions = (node \ "edge").map(extractTransition(states));
-    PartialKripkeStructure(states.toList, transitions.toList, initialStates.toSet);
+    PartialKripkeStructure(node.attributes.asAttrMap("ID"), states.toList, transitions.toList);
   }
 
   def apply(filename : String) : Seq[PartialKripkeStructure] = {

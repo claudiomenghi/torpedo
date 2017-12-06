@@ -17,4 +17,9 @@
   */
 package thrive.pks
 
-case class Transition(from : State, to : State);
+case class Transition(from : State, to : State){
+
+  def toXML : Seq[String] =
+    Seq("<edge from='" + from.name + "' to='" + to.name + "'>", "\t<attr name='weight' value='T'/>", "</edge>");
+
+}
