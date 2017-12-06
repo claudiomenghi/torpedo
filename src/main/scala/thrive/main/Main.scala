@@ -18,7 +18,7 @@
 package thrive.main
 
 import thrive.ltl.{AtomicFormula, F, G, LtlFormula}
-import thrive.pks.{PartialKripkeStructure, State}
+import thrive.pks.PartialKripkeStructure
 import thrive.solver.{PLTLMup, Solver}
 
 object Main {
