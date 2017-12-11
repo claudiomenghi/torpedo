@@ -7,7 +7,7 @@ import thrive.ltl._
 
 class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends PLTLMup(clauses, logFilename) {
 
-  override protected val COMMAND = "docker run -i pltl-mup-hybrid";
+  override protected def COMMAND = "docker run -i pltl-mup-hybrid";
 
   override protected def translate(formulae: Seq[LtlFormula]) : Seq[String] =
     Seq(formulae.map("(" + _.toTRP + ")").mkString(" & "));
@@ -46,9 +46,13 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
     }
 
   override protected def extractInsight(line : String) : Option[Insight] = {
-    val formula = LtlFormulaParser.parse(line.split(":")(1).trim);
-    val insights = clauses.map(clause => normalized(clause.clause) -> clause.insight).toMap;
-    insights.get(formula);
+    if(line.startsWith("MUS Size:"))
+      None;
+    else {
+      val formula = LtlFormulaParser.parse(line.split(":")(1).trim);
+      val insights = clauses.map(clause => normalized(clause.clause) -> clause.insight).toMap;
+      insights.get(formula);
+    }
   }
 
   override protected def processError(inputStream: InputStream) : Unit = {}

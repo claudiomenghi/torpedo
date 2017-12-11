@@ -28,7 +28,7 @@ import scala.sys.process.{Process, ProcessIO}
 
 class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends SolverInstance {
 
-  protected val COMMAND = "docker run -i pltl-mup";
+  protected def COMMAND = "docker run -i pltl-mup";
   protected val SUCCESS = 0;
 
   protected var result : SolverResult = UNKNOWN;
