@@ -17,9 +17,9 @@
   */
 package thrive.main
 
-import thrive.ltl.{AtomicFormula, F, G, LtlFormula}
+import thrive.ltl._
 import thrive.pks.PartialKripkeStructure
-import thrive.solver.{PLTLMup, Solver}
+import thrive.solver.{HybridPLTLMup, Solver}
 
 object Main {
 
@@ -32,7 +32,7 @@ object Main {
     println("");
   }
 
-  def main(args: Array[String]): Unit = {
+  def semaphore(): Unit = {
     val g = AtomicFormula('g);
     val r = AtomicFormula('r);
     val ks = PartialKripkeStructure("examples/semaphore.xml").head;
@@ -41,10 +41,25 @@ object Main {
     val phi2 = G(F(g));
     val phi3 = G(r -> G(g));
 
-    val solver = PLTLMup;
+    val solver = HybridPLTLMup;
     checkProperty("phi1", phi1, ks, solver);
     checkProperty("phi2", phi2, ks, solver);
     checkProperty("phi3", phi3, ks, solver);
+
+  }
+
+  def phone() : Unit = {
+    val connected = AtomicFormula('CONNECTED);
+    val offhook = AtomicFormula('OFFHOOK);
+    val solver = HybridPLTLMup;
+    val ks = PartialKripkeStructure("examples/caller-comp2.xml").head;
+    checkProperty("psi1", G(connected -> X(!offhook)), ks, solver);
+    checkProperty("psi2", G(connected -> X(!offhook -> !connected)), ks, solver);
+  }
+
+  def main(args: Array[String]): Unit = {
+    semaphore();
+    phone();
   }
 
 }
