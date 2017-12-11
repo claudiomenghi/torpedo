@@ -20,6 +20,7 @@ package thrive.solver
 import java.io.{InputStream, OutputStream, OutputStreamWriter}
 
 import thrive.insights.{Clause, Insight}
+import thrive.ltl.LtlFormula
 import thrive.utilities.Writer
 
 import scala.io.Source
@@ -27,10 +28,10 @@ import scala.sys.process.{Process, ProcessIO}
 
 class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends SolverInstance {
 
-  private val COMMAND = "docker run -i pltl-mup";
-  private val SUCCESS = 0;
+  protected val COMMAND = "docker run -i pltl-mup";
+  protected val SUCCESS = 0;
 
-  private var result : SolverResult = UNKNOWN;
+  protected var result : SolverResult = UNKNOWN;
   private val process = Process(COMMAND);
   private val io = new ProcessIO(processInput, processOutput, processError);
 
@@ -55,6 +56,9 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Solve
     }
   }
 
+  protected def extractInsight(line : String) : Option[Insight] =
+    extractClauseIndex(line).map(possibleInsights).filterNot(actualInsights.contains);
+
   private def processLine(line : String) : Unit = {
     if(line.startsWith("Satisfiable"))
       result = SATISFIABLE;
@@ -62,7 +66,7 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Solve
       result = UNSATISFIABLE;
 
     if(unsatCore) {
-      val insight = extractClauseIndex(line).map(possibleInsights).filterNot(actualInsights.contains);
+      val insight = extractInsight(line);
       insight match {
         case None => unsatCore = false;
         case Some(i) => actualInsights = actualInsights :+ i;
@@ -73,9 +77,11 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Solve
       unsatCore = true;
   }
 
+  protected def translate(formulae: Seq[LtlFormula]) : Seq[String] = formulae.map(_.toPLTLMup + "\n");
+
   private def processInput(outputStream : OutputStream) : Unit = {
     val writer = new OutputStreamWriter(outputStream);
-    formulae.foreach(f => writer.write(f.toPLTLMup + "\n"))
+    translate(formulae).foreach(writer.write);
     writer.close();
   }
 
@@ -85,13 +91,15 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Solve
     logFilename.foreach(Writer.write(_, lines));
   }
 
-  private def processError(inputStream: InputStream) : Unit = {
+  protected def processError(inputStream: InputStream) : Unit = {
     val lines = Source.fromInputStream(inputStream).getLines;
     lines.foreach(println);
   }
 
+  protected def exitValue() : Int = process.run(io).exitValue();
+
   def check() : SolverResult = {
-    if(!alreadyChecked && process.run(io).exitValue() != SUCCESS) {
+    if(!alreadyChecked && exitValue() != SUCCESS) {
       alreadyChecked = true;
       ERROR;
     }
