@@ -21,9 +21,9 @@ case class NegatedAtomicFormula(atom : AtomicFormula) extends Literal {
 
   override def unary_! : Literal = atom;
 
-  override def toString: String = "not " + atom.toString;
-
   override def toPLTLMup : String = "~" + atom.toPLTLMup;
+
+  override def toTRP: String = "not (" + atom.toTRP + ")";
 
   override def atomicFormula : AtomicFormula = atom;
 

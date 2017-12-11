@@ -31,6 +31,8 @@ abstract class LtlFormula(protected val priority : Int) {
 
   def toPLTLMup : String;
 
+  def toTRP : String;
+
   def complementClosed : LtlFormula;
 
   def enclose(f : LtlFormula => String, nextPriority : Int) : String =
@@ -48,9 +50,9 @@ abstract class LtlFormula(protected val priority : Int) {
 
 case class Negation(formula: LtlFormula) extends LtlFormula(0){
 
-  override def toString: String = "not(" + formula.toString + ")";
-
   override def toPLTLMup : String = "~" + formula.enclose(_.toPLTLMup, priority);
+
+  override def toTRP : String = "~(" + formula.toTRP + ")";
 
   override def complementClosed : LtlFormula =
     formula match {
@@ -70,11 +72,19 @@ case class Negation(formula: LtlFormula) extends LtlFormula(0){
 
 case class Conjunction(formulae : Seq[LtlFormula]) extends LtlFormula(10){
 
-  override def toString: String = formulae.map("(" + _ + ")").mkString(" & ");
-
   override def &(rhs : LtlFormula) : LtlFormula = Conjunction(formulae :+ rhs);
 
   override def toPLTLMup : String = formulae.map(_.enclose(_.toPLTLMup, priority)).mkString(" & ");
+
+  override def toTRP : String = formulae.map("(" + _.toTRP + ")").mkString(" & ");
+
+  override def equals(o: scala.Any): Boolean =
+    o match {
+      case Conjunction(f) => formulae.toSet == f.toSet;
+      case _ => false;
+    }
+
+  override def hashCode(): Int = formulae.toSet.hashCode();
 
   def simplify : LtlFormula =
     formulae.size match {
@@ -89,11 +99,19 @@ case class Conjunction(formulae : Seq[LtlFormula]) extends LtlFormula(10){
 
 case class Disjunction(formulae : Seq[LtlFormula]) extends LtlFormula(11){
 
-  override def toString: String = formulae.map("(" + _ + ")").mkString(" | ");
+  override def equals(o: scala.Any): Boolean =
+    o match {
+      case Disjunction(f) => formulae.toSet == f.toSet;
+      case _ => false;
+    }
+
+  override def hashCode(): Int = formulae.toSet.hashCode();
 
   override def |(rhs : LtlFormula) : LtlFormula = Disjunction(formulae :+ rhs);
 
   override def toPLTLMup : String = formulae.map(_.enclose(_.toPLTLMup, priority)).mkString(" | ");
+
+  override def toTRP : String = formulae.map("(" + _.toTRP + ")").mkString(" | ");
 
   def simplify : LtlFormula =
     formulae.size match {
@@ -107,65 +125,73 @@ case class Disjunction(formulae : Seq[LtlFormula]) extends LtlFormula(11){
 }
 
 case class Implication(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(12){
-  override def toString: String = "(" + lhs + ") -> (" + rhs + ")";
 
   override def toPLTLMup : String = lhs.enclose(_.toPLTLMup, priority) + " => " + rhs.enclose(_.toPLTLMup, priority);
+
+  override def toTRP : String = "(" + lhs.toTRP + ") => (" + rhs.toTRP + ")";
 
   override def complementClosed : LtlFormula = (!lhs).complementClosed | rhs.complementClosed;
 }
 
 case class Before(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
-  override def toString: String = "(" + lhs.toString + ") before (" + rhs.toString + ")";
 
   override def toPLTLMup : String = lhs.enclose(_.toPLTLMup, priority - 1) + " B " + rhs.enclose(_.toPLTLMup, priority);
+
+  override def toTRP : String = (!Until(!lhs, rhs)).toTRP;
 
   override def complementClosed : LtlFormula = Before(lhs.complementClosed, rhs.complementClosed);
 }
 
 case class Until(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
-  override def toString: String = "(" + lhs.toString + ") until (" + rhs.toString + ")";
 
   override def toPLTLMup : String = lhs.enclose(_.toPLTLMup, priority - 1) + " U " + rhs.enclose(_.toPLTLMup, priority);
+
+  override def toTRP : String = "(" + lhs.toTRP + ") until (" + rhs.toTRP + ")";
 
   override def complementClosed : LtlFormula = Until(lhs.complementClosed, rhs.complementClosed);
 }
 
 case class X(formula: LtlFormula) extends LtlFormula(0){
-  override def toString: String = "next(" + formula.toString + ")";
 
   override def toPLTLMup : String = formula.enclose("X", _.toPLTLMup, priority);
+
+  override def toTRP : String = "next(" + formula.toTRP + ")";
 
   override def complementClosed : LtlFormula = X(formula.complementClosed);
 }
 
 case class G(formula: LtlFormula) extends LtlFormula(0){
-  override def toString: String = "always(" + formula.toString + ")";
 
   override def toPLTLMup : String = formula.enclose("G", _.toPLTLMup, priority);
+
+  override def toTRP : String = "always(" + formula.toTRP + ")";
 
   override def complementClosed : LtlFormula = G(formula.complementClosed);
 }
 
 case class F(formula: LtlFormula) extends LtlFormula(0){
-  override def toString: String = "sometime(" + formula.toString + ")";
 
   override def toPLTLMup : String = formula.enclose("F", _.toPLTLMup, priority);
+
+  override def toTRP : String = "sometime(" + formula.toTRP + ")";
 
   override def complementClosed : LtlFormula = F(formula.complementClosed);
 }
 
 case object True extends LtlFormula(0){
-  override def toString : String = "True";
 
   override def toPLTLMup : String = "True";
+
+  override def toTRP : String = "True";
 
   override def complementClosed : LtlFormula = this;
 }
 
 case object False extends LtlFormula(0){
-  override def toString : String = "False";
 
   override def toPLTLMup : String = "False";
+
+  override def toTRP : String = "False";
 
   override def complementClosed : LtlFormula = this;
 }

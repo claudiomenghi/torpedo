@@ -23,4 +23,6 @@ case class Clause(clause : LtlFormula, insight : Insight) {
 
   def toPLTLMup : String = clause.toPLTLMup;
 
+  def toTRP : String = clause.toTRP;
+
 }

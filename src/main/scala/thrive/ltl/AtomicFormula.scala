@@ -27,9 +27,9 @@ case class AtomicFormula(id : String) extends Literal {
 
   override def unary_! : Literal = NegatedAtomicFormula(this);
 
-  override def toString: String = id;
-
   override def toPLTLMup : String = id;
+
+  override def toTRP : String = id;
 
   override def atomicFormula : AtomicFormula = this;
 
@@ -43,9 +43,9 @@ case class AtomicFormula(id : String) extends Literal {
 
 class AugmentedAtomicFormula(id : String, value : Boolean) extends AtomicFormula(id) {
 
-  override def toString: String = id + (if(value) "_p" else "_n");
-
   override def toPLTLMup : String = id + (if(value) "_p" else "_n");
+
+  override def toTRP: String = id + (if(value) "_p" else "_n");
 
   override def complementClosed : AugmentedAtomicFormula = this;
 
