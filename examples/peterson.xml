@@ -1,0 +1,141 @@
+<gxl xmlns:xbel='www.cs.toronto.edu/xbel' xmlns:xlink='xlink'>
+	<graph ID='peterson' edgemode='directed'>
+
+		<node ID='s0' xbel:initial='true'>
+			<attr type='prop' name='n1' value='T'/>
+			<attr type='prop' name='n2' value='T'/>
+			<attr type='prop' name='w1' value='F'/>
+			<attr type='prop' name='w2' value='F'/>
+			<attr type='prop' name='c1' value='F'/>
+			<attr type='prop' name='c2' value='F'/>
+			<attr type='prop' name='y' value='T'/>
+		</node>
+		
+		<node ID='s1'>
+			<attr type='prop' name='n1' value='F'/>
+			<attr type='prop' name='n2' value='T'/>
+			<attr type='prop' name='w1' value='T'/>
+			<attr type='prop' name='w2' value='F'/>
+			<attr type='prop' name='c1' value='F'/>
+			<attr type='prop' name='c2' value='F'/>
+			<attr type='prop' name='y' value='T'/>
+		</node>
+		
+		<node ID='s2'>
+			<attr type='prop' name='n1' value='T'/>
+			<attr type='prop' name='n2' value='F'/>
+			<attr type='prop' name='w1' value='F'/>
+			<attr type='prop' name='w2' value='T'/>
+			<attr type='prop' name='c1' value='F'/>
+			<attr type='prop' name='c2' value='F'/>
+			<attr type='prop' name='y' value='T'/>
+		</node>
+		
+		<node ID='s3'>
+			<attr type='prop' name='n1' value='F'/>
+			<attr type='prop' name='n2' value='T'/>
+			<attr type='prop' name='w1' value='F'/>
+			<attr type='prop' name='w2' value='F'/>
+			<attr type='prop' name='c1' value='T'/>
+			<attr type='prop' name='c2' value='F'/>
+			<attr type='prop' name='y' value='F'/>
+		</node>
+		
+		<node ID='s4'>
+			<attr type='prop' name='n1' value='F'/>
+			<attr type='prop' name='n2' value='F'/>
+			<attr type='prop' name='w1' value='T'/>
+			<attr type='prop' name='w2' value='T'/>
+			<attr type='prop' name='c1' value='F'/>
+			<attr type='prop' name='c2' value='F'/>
+			<attr type='prop' name='y' value='T'/>
+		</node>
+		
+		<node ID='s5'>
+			<attr type='prop' name='n1' value='T'/>
+			<attr type='prop' name='n2' value='F'/>
+			<attr type='prop' name='w1' value='F'/>
+			<attr type='prop' name='w2' value='F'/>
+			<attr type='prop' name='c1' value='F'/>
+			<attr type='prop' name='c2' value='T'/>
+			<attr type='prop' name='y' value='F'/>
+		</node>
+		
+		<node ID='s6'>
+			<attr type='prop' name='n1' value='F'/>
+			<attr type='prop' name='n2' value='F'/>
+			<attr type='prop' name='w1' value='F'/>
+			<attr type='prop' name='w2' value='T'/>
+			<attr type='prop' name='c1' value='T'/>
+			<attr type='prop' name='c2' value='F'/>
+			<attr type='prop' name='y' value='F'/>
+		</node>
+		
+		<node ID='s7'>
+			<attr type='prop' name='n1' value='F'/>
+			<attr type='prop' name='n2' value='F'/>
+			<attr type='prop' name='w1' value='T'/>
+			<attr type='prop' name='w2' value='F'/>
+			<attr type='prop' name='c1' value='F'/>
+			<attr type='prop' name='c2' value='T'/>
+			<attr type='prop' name='y' value='F'/>
+		</node>
+		
+		<edge from='s0' to='s1'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s0' to='s2'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s1' to='s3'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s1' to='s4'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s2' to='s4'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s2' to='s5'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s3' to='s0'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s3' to='s6'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s4' to='s6'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s4' to='s7'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s5' to='s0'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s5' to='s7'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s6' to='s2'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='s7' to='s1'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+	</graph>
+</gxl>

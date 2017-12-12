@@ -32,6 +32,13 @@ object Main {
     println("");
   }
 
+  def peterson() : Unit = {
+    val ks = PartialKripkeStructure("examples/peterson.xml").head;
+
+    val solver = HybridPLTLMup;
+    checkProperty("p1", G(F(AtomicFormula('y))), ks, solver);
+  }
+
   def semaphore(): Unit = {
     val g = AtomicFormula('g);
     val r = AtomicFormula('r);
@@ -45,7 +52,6 @@ object Main {
     checkProperty("phi1", phi1, ks, solver);
     checkProperty("phi2", phi2, ks, solver);
     checkProperty("phi3", phi3, ks, solver);
-
   }
 
   def phone() : Unit = {
@@ -60,6 +66,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     semaphore();
     phone();
+    peterson();
   }
 
 }
