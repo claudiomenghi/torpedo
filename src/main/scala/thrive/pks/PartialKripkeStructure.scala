@@ -17,6 +17,9 @@
   */
 package thrive.pks
 
+import java.io.FileNotFoundException
+
+import org.xml.sax.SAXParseException
 import thrive.insights._
 import thrive.ltl._
 import thrive.mc._
@@ -152,15 +155,26 @@ object PartialKripkeStructure {
     Transition(stateMap(from), stateMap(to));
   }
 
-  private def extractGraph(node : Node) : PartialKripkeStructure = {
+  private def extractGraph(node : Node) : Option[PartialKripkeStructure] = {
     val states = (node \ "node").map(extractNode);
     val transitions = (node \ "edge").map(extractTransition(states));
-    PartialKripkeStructure(node.attributes.asAttrMap("ID"), states.toList, transitions.toList);
+    try {
+      Some(PartialKripkeStructure(node.attributes.asAttrMap("ID"), states.toList, transitions.toList));
+    }
+    catch {
+      case _ : SAXParseException => None;
+    }
   }
 
   def apply(filename : String) : Seq[PartialKripkeStructure] = {
-    val document = XML.loadFile(filename);
-    (document \ "graph").map(extractGraph);
+    try {
+      val document = XML.loadFile(filename);
+      (document \ "graph").flatMap(extractGraph);
+    }
+    catch {
+      case _ : FileNotFoundException => Seq();
+      case _ : SAXParseException => Seq();
+    }
   }
 
 }

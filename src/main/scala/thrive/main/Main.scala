@@ -17,6 +17,8 @@
   */
 package thrive.main
 
+import java.io.FileNotFoundException
+
 import thrive.ltl._
 import thrive.pks.PartialKripkeStructure
 import thrive.solver.{HybridPLTLMup, Solver}
@@ -25,15 +27,25 @@ import scala.io.Source
 
 object Main {
 
-  def readProperty(filename : String) : LtlFormula = {
-    val clauses = Source.fromFile(filename).getLines().map(LtlFormulaParser.parse).toSeq;
-    Conjunction(clauses).simplify;
+  def readProperty(filename : String) : Option[LtlFormula] = {
+    try {
+      val clauses = Source.fromFile(filename).getLines().map(LtlFormulaParser.parse).toSeq;
+      Some(Conjunction(clauses).simplify);
+    }
+    catch {
+      case _ : FileNotFoundException => None;
+    }
   }
 
   def checkProperty(ksFilename : String, propertyFilename : String, solver : Solver) : Unit = {
-    val ks = PartialKripkeStructure(ksFilename).head;
+    val ks = PartialKripkeStructure(ksFilename);
     val property = readProperty(propertyFilename);
-    println(ks.check(solver, property, None));
+    if(ks.isEmpty)
+      println("Input/output error on PKS!");
+    else if(property.isEmpty)
+      println("Input/output error on property!");
+    else
+      println(ks.head.check(solver, property.get, None));
   }
 
   def checkProperty(name : String, property : LtlFormula, ks : PartialKripkeStructure, solver : Solver) : Unit = {
