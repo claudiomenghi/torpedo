@@ -89,9 +89,13 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-    semaphore();
-    phone();
-    peterson();
+    if(args.length < 2){
+      println("Usage: thrive <PKS XML file> <property file>");
+    }
+    else{
+      val files = args.takeRight(2);
+      checkProperty(files.head, files(1), HybridPLTLMup);
+    }
   }
 
 }
