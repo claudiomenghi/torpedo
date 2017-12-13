@@ -11,5 +11,5 @@ Install the requried Docker containers running `./prepare.sh`
 from the `docker` folder.
 
 After compilation, 
-run `java -jar target/scala-2.12/thrive.jar`.
+run `java -jar target/scala-2.12/thrive.jar <PKS XML file> <property file>`.
 
