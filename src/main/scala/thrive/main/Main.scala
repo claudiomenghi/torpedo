@@ -57,37 +57,6 @@ object Main {
     println("");
   }
 
-  def peterson() : Unit = {
-    val ks = PartialKripkeStructure("examples/peterson.xml").head;
-
-    val solver = HybridPLTLMup;
-    checkProperty("p1", G(F(AtomicFormula('y))), ks, solver);
-  }
-
-  def semaphore(): Unit = {
-    val g = AtomicFormula('g);
-    val r = AtomicFormula('r);
-    val ks = PartialKripkeStructure("examples/semaphore.xml").head;
-
-    val phi1 = G(F(r));
-    val phi2 = G(F(g));
-    val phi3 = G(r -> G(g));
-
-    val solver = HybridPLTLMup;
-    checkProperty("phi1", phi1, ks, solver);
-    checkProperty("phi2", phi2, ks, solver);
-    checkProperty("phi3", phi3, ks, solver);
-  }
-
-  def phone() : Unit = {
-    val connected = AtomicFormula('CONNECTED);
-    val offhook = AtomicFormula('OFFHOOK);
-    val solver = HybridPLTLMup;
-    val ks = PartialKripkeStructure("examples/caller-comp2.xml").head;
-    checkProperty("psi1", G(connected -> X(!offhook)), ks, solver);
-    checkProperty("psi2", G(connected -> X(!offhook -> !connected)), ks, solver);
-  }
-
   def main(args: Array[String]): Unit = {
     if(args.length < 2){
       println("Usage: thrive <PKS XML file> <property file>");
