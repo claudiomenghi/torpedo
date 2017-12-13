@@ -21,14 +21,27 @@ import thrive.ltl._
 import thrive.pks.PartialKripkeStructure
 import thrive.solver.{HybridPLTLMup, Solver}
 
+import scala.io.Source
+
 object Main {
+
+  def readProperty(filename : String) : LtlFormula = {
+    val clauses = Source.fromFile(filename).getLines().map(LtlFormulaParser.parse).toSeq;
+    Conjunction(clauses).simplify;
+  }
+
+  def checkProperty(ksFilename : String, propertyFilename : String, solver : Solver) : Unit = {
+    val ks = PartialKripkeStructure(ksFilename).head;
+    val property = readProperty(propertyFilename);
+    println(ks.check(solver, property, None));
+  }
 
   def checkProperty(name : String, property : LtlFormula, ks : PartialKripkeStructure, solver : Solver) : Unit = {
     println("Checking property " + name + ":");
     println("    " + property.toPLTLMup);
     ks.writeOptimisticPLTLFile(property, name + "_opt.pltl");
     ks.writePessimisticPLTLFile(property, name + "_pes.pltl");
-    println("    " + ks.check(solver, property, name));
+    println("    " + ks.check(solver, property, Some(name)));
     println("");
   }
 

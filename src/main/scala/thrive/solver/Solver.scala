@@ -25,8 +25,8 @@ trait Solver {
 
   def check(clause : Clause) : SolverResult = check(Seq(clause));
 
-  def check(clauses : Seq[Clause], logFilename : String) : SolverResult;
+  def check(clauses : Seq[Clause], logFilename : Option[String]) : SolverResult;
 
-  def create(clauses  : Seq[Clause], logFilename : String) : SolverInstance;
+  def create(clauses  : Seq[Clause], logFilename : Option[String]) : SolverInstance;
 
 }

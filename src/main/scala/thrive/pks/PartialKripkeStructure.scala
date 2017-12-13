@@ -20,7 +20,7 @@ package thrive.pks
 import thrive.insights._
 import thrive.ltl._
 import thrive.mc._
-import thrive.solver.{SATISFIABLE, Solver, UNSATISFIABLE}
+import thrive.solver.{SATISFIABLE, Solver, SolverInstance, UNSATISFIABLE}
 import thrive.utilities.Writer
 
 import scala.xml.{Node, XML}
@@ -90,18 +90,21 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
   def writePessimisticPLTLFile(property : LtlFormula, filename : String) : Unit =
     writePTLTFile(pessimistic(property), filename);
 
-  def check(solver : Solver, property : LtlFormula, logBasename : String) : ModelCheckerResult = {
-    val optimisticSolverInstance = solver.create(optimistic(property), logBasename + "_opt.log");
+  def check(solver : Solver, property : LtlFormula, logBasename : Option[String]) : ModelCheckerResult = {
+    def writeSolverLog(logFilename : Option[String], solverInstance: SolverInstance) : Unit =
+      logFilename.foreach(log => Writer.write(log, solverInstance.insights.flatMap(_.explain)));
+
+    val optimisticSolverInstance = solver.create(optimistic(property), logBasename.map(_ + "_opt.log"));
     val optimisticResult = optimisticSolverInstance.check();
-    Writer.write(logBasename + "_opt.txt", optimisticSolverInstance.insights.flatMap(_.explain));
+    writeSolverLog(logBasename.map(_ + "_opt.txt"), optimisticSolverInstance);
     if(optimisticResult == SATISFIABLE) NOT_SATISFIED;
     else{
       if(optimisticResult == UNSATISFIABLE && optimisticSolverInstance.insights.forall(!_.dependOnMaybe))
         SATISFIED;
       else{
-        val pessimisticSolverInstance = solver.create(pessimistic(property), logBasename + "_pes.log");
+        val pessimisticSolverInstance = solver.create(pessimistic(property), logBasename.map(_ + "_pes.log"));
         val pessimisticResult = pessimisticSolverInstance.check();
-        Writer.write(logBasename + "_pes.txt", pessimisticSolverInstance.insights.flatMap(_.explain));
+        writeSolverLog(logBasename.map(_ + "_pes.txt"), pessimisticSolverInstance);
         if(pessimisticResult == UNSATISFIABLE) SATISFIED;
         else if (optimisticResult.errorFound || pessimisticResult.errorFound) VERIFICATION_ERROR;
         else POSSIBLY_SATISFIED;
