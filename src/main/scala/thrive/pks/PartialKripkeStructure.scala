@@ -84,24 +84,17 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
   private def pessimistic(property : LtlFormula) : Seq[Clause] =
     distinct ++ transitionPredicate ++ statePredicate(a => !a) ++ Seq(initialPredicate, transformProperty(property));
 
-  private def writeSolverInputFile(solver : Solver, properties : Seq[Clause], filename : String) : Unit = {
-    val inputs = solver.create(properties, None).input;
-    Writer.write(filename, inputs);
-  }
+  private def writeSolverInputFile(solverInstance: SolverInstance, filename : String) : Unit =
+    Writer.write(filename, solverInstance.input);
 
-  def writeOptimisticSolverInput(solver : Solver, property : LtlFormula, filename : String) : Unit =
-    writeSolverInputFile(solver, optimistic(property), filename);
-
-  def writePessimisticSolverInput(solver : Solver, property : LtlFormula, filename : String) : Unit =
-    writeSolverInputFile(solver, pessimistic(property), filename);
-
-  def check(solver : Solver, property : LtlFormula, solverLogPrefix : Option[String],
-            outputPrefix : Option[String]) : ModelCheckerResult = {
+  def check(solver : Solver, property : LtlFormula, solverInputPrefix : Option[String],
+            solverLogPrefix : Option[String], outputPrefix : Option[String]) : ModelCheckerResult = {
 
     def writeSolverLog(logFilename : Option[String], solverInstance: SolverInstance) : Unit =
       logFilename.foreach(log => Writer.write(log, solverInstance.insights.flatMap(_.explain)));
 
     val optimisticSolverInstance = solver.create(optimistic(property), solverLogPrefix.map(_ + "_opt.log"));
+    solverInputPrefix.foreach(prefix => writeSolverInputFile(optimisticSolverInstance, prefix));
     val optimisticResult = optimisticSolverInstance.check();
     writeSolverLog(outputPrefix.map(_ + "_opt.txt"), optimisticSolverInstance);
     if(optimisticResult == SATISFIABLE) NOT_SATISFIED;
@@ -110,6 +103,7 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
         SATISFIED;
       else{
         val pessimisticSolverInstance = solver.create(pessimistic(property), solverLogPrefix.map(_ + "_pes.log"));
+        solverInputPrefix.foreach(prefix => writeSolverInputFile(pessimisticSolverInstance, prefix));
         val pessimisticResult = pessimisticSolverInstance.check();
         writeSolverLog(outputPrefix.map(_ + "_pes.txt"), pessimisticSolverInstance);
         if(pessimisticResult == UNSATISFIABLE) SATISFIED;

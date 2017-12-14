@@ -21,13 +21,12 @@ import java.io.FileNotFoundException
 
 import thrive.ltl._
 import thrive.pks.PartialKripkeStructure
-import thrive.solver.{HybridPLTLMup, PLTLMup, Solver}
 
 import scala.io.Source
 
 object Main {
 
-  def readProperty(filename : String) : Option[LtlFormula] = {
+  private def readProperty(filename : String) : Option[LtlFormula] = {
     try {
       val clauses = Source.fromFile(filename).getLines().map(LtlFormulaParser.parse).toSeq;
       Some(Conjunction(clauses).simplify);
@@ -37,31 +36,15 @@ object Main {
     }
   }
 
-  def writeSolverInput(pks : PartialKripkeStructure, property : LtlFormula, options: Options) : Unit = {
-    options.solverInput.foreach(prefix => pks.writeOptimisticSolverInput(options.solver, property, prefix));
-    options.solverInput.foreach(prefix => pks.writePessimisticSolverInput(options.solver, property, prefix));
-  }
-
-  def checkProperty(ksFilename : String, propertyFilename : String, options: Options) : Unit = {
+  private def checkProperty(ksFilename : String, propertyFilename : String, options: Options) : Unit = {
     val ks = PartialKripkeStructure(ksFilename);
     val property = readProperty(propertyFilename);
     if(ks.isEmpty)
       println("Input/output error on PKS!");
     else if(property.isEmpty)
       println("Input/output error on property!");
-    else {
-      writeSolverInput(ks.head, property.get, options);
-      println(ks.head.check(options.solver, property.get, options.solverLog, options.output));
-    }
-  }
-
-  def checkProperty(name : String, property : LtlFormula, ks : PartialKripkeStructure, solver : Solver) : Unit = {
-    println("Checking property " + name + ":");
-    println("    " + property.toPLTLMup);
-    ks.writeOptimisticSolverInput(PLTLMup, property, name + "_opt.pltl");
-    ks.writePessimisticSolverInput(PLTLMup, property, name + "_pes.pltl");
-    println("    " + ks.check(solver, property, Some(name), Some(name)));
-    println("");
+    else
+      println(ks.head.check(options.solver, property.get, options.solverInput, options.solverLog, options.output));
   }
 
   def main(args: Array[String]): Unit = {
