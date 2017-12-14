@@ -18,4 +18,4 @@ Possible options are:
 * `-i <filename prefix>`: write the input passed to the external solver in files with a given prefix.
 * `-l <filename prefix>`: write the external solver output in files with a given prefix.
 * `-o <filename prefix>`: write the parts of the PKS needed for the property to hold in files with a given prefix.
-* `-s solver`: external solver to be uses. Possible choices are `pltlmup` and `hybrid`.
+* `-s solver`: external solver to be used. Possible choices are `pltlmup` and `hybrid`.
