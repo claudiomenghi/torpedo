@@ -1,0 +1,151 @@
+<!-- caller-comp2 and callee-comp2 composed (in an abstracted 4val logic) -->
+<!-- the comp2 models add a multiple other states to complete the state space,
+with true transitions to and from all global states, such that values of 
+local variables are always preserved. -->
+
+<gxl xmlns:xbel='www.cs.toronto.edu/xbel'
+     xmlns:xlink='xlink'
+  >
+ <graph ID='caller' edgemode='directed'>
+   <xbel:logic xlink:type='simple' xlink:href='examples/xml/phone/4val-logic.xml'/>
+
+   <node ID='idle' xbel:initial='true'>
+     <attr type='prop' name='OFFHOOK'     value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='FF'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+   </node>
+   <node ID='ringtone'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='LINE_SEL'    value='TT'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CALLEE'      value='FF'/>
+   </node>
+   <node ID='dialtone'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='LINE_SEL'    value='FF'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+   </node>
+   <node ID='busytone'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='LINE_SEL'    value='TT'/>
+     <attr type='prop' name='CALLEE_FREE' value='FF'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CALLEE'      value='FF'/>
+   </node>
+   <node ID='connected'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='LINE_SEL'    value='TT'/>
+     <attr type='prop' name='CALLEE_FREE' value='FF'/>
+     <attr type='prop' name='CONNECTED'   value='TT'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+   </node>
+   <node ID='ringing1'>
+     <attr type='prop' name='OFFHOOK'     value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='FF'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='TT'/>
+     <attr type='prop' name='CALLER'      value='FF'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+   </node>
+   <node ID='ringing2'>
+     <attr type='prop' name='OFFHOOK'     value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='TT'/>
+     <attr type='prop' name='CALLEE_FREE' value='FF'/>
+     <attr type='prop' name='CONNECTED'   value='TT'/>
+     <attr type='prop' name='CALLER'      value='FF'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+   </node>
+
+   <edge from='idle' to='dialtone'>
+     <attr name='weight' value='TF'/>
+   </edge>
+   <edge from='dialtone' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='dialtone' to='ringtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='dialtone' to='busytone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringtone' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringtone' to='connected'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='busytone' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected' to='idle'>
+     <attr name='weight' value='TF'/>
+   </edge>
+   <edge from='connected' to='dialtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='idle' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringtone' to='ringtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='dialtone' to='dialtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='busytone' to='busytone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected' to='connected'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing1' to='ringing1'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing2' to='ringing2'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing1' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing2' to='idle'>
+     <attr name='weight' value='FT'/>
+   </edge>
+   <edge from='idle' to='ringing1'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='idle' to='ringing2'>
+     <attr name='weight' value='FT'/>
+   </edge>
+   <edge from='ringing1' to='connected'>
+     <attr name='weight' value='FT'/>
+   </edge>
+   <edge from='ringing2' to='connected'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected' to='ringing1'>
+     <attr name='weight' value='FT'/>
+   </edge>
+   <edge from='connected' to='ringing2'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected' to='dialtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing1' to='ringing2'>
+     <attr name='weight' value='FT'/>
+   </edge>
+   <edge from='ringing2' to='ringing1'>
+     <attr name='weight' value='FT'/>
+   </edge>
+ </graph>
+</gxl>

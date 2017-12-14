@@ -1,0 +1,147 @@
+<!-- caller-comp3 and callee-comp3 composed (in an abstracted 4val logic) -->
+<!-- the comp3 models assume that connected is not a global state -->
+
+<gxl xmlns:xbel='www.cs.toronto.edu/xbel'
+     xmlns:xlink='xlink'
+  >
+ <graph ID='caller' edgemode='directed'>
+   <xbel:logic xlink:type='simple' xlink:href='examples/xml/phone/4val-logic.xml'/>
+
+   <node ID='idle' xbel:initial='true'>
+     <attr type='prop' name='OFFHOOK'     value='FF'/>
+     <attr type='prop' name='CONNECTED_CALLEE'   value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='FF'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLER'   value='FF'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+   </node>
+   <node ID='ringtone'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLEE'   value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='TT'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLER'   value='FF'/>
+     <attr type='prop' name='CALLEE'      value='FF'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+   </node>
+   <node ID='dialtone'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLEE'   value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='FF'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLER'   value='FF'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+   </node>
+   <node ID='busytone'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLEE'   value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='TT'/>
+     <attr type='prop' name='CALLEE_FREE' value='FF'/>
+     <attr type='prop' name='CONNECTED_CALLER'   value='FF'/>
+     <attr type='prop' name='CALLEE'      value='FF'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='FF'/>
+   </node>
+   <node ID='connected_as_caller'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLEE'   value='FF'/>
+     <attr type='prop' name='LINE_SEL'    value='TT'/>
+     <attr type='prop' name='CALLEE_FREE' value='FF'/>
+     <attr type='prop' name='CONNECTED_CALLER'   value='TT'/>
+     <attr type='prop' name='CALLEE'      value='FF'/>
+     <attr type='prop' name='CALLER'      value='TT'/>
+     <attr type='prop' name='CONNECTED'   value='TT'/>
+   </node>
+   <node ID='connected_as_callee'>
+     <attr type='prop' name='OFFHOOK'     value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLEE'   value='TT'/>
+     <attr type='prop' name='LINE_SEL'    value='FF'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLER'   value='FF'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+     <attr type='prop' name='CALLER'      value='FF'/>
+     <attr type='prop' name='CONNECTED'   value='TT'/>
+   </node>
+   <node ID='ringing'>
+     <attr type='prop' name='OFFHOOK'     value='FF'/>
+     <attr type='prop' name='CONNECTED_CALLEE'   value='TT'/>
+     <attr type='prop' name='LINE_SEL'    value='FF'/>
+     <attr type='prop' name='CALLEE_FREE' value='TT'/>
+     <attr type='prop' name='CONNECTED_CALLER'   value='FF'/>
+     <attr type='prop' name='CALLEE'      value='TT'/>
+     <attr type='prop' name='CALLER'      value='FF'/>
+     <attr type='prop' name='CONNECTED'   value='TT'/>
+   </node>
+
+   <edge from='idle' to='dialtone'>
+     <attr name='weight' value='TF'/>
+   </edge>
+   <edge from='dialtone' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='dialtone' to='ringtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='dialtone' to='busytone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringtone' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringtone' to='connected_as_caller'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='busytone' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected_as_caller' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected_as_caller' to='dialtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected_as_callee' to='dialtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='idle' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringtone' to='ringtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='dialtone' to='dialtone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='busytone' to='busytone'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected_as_caller' to='connected_as_caller'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected_as_callee' to='connected_as_callee'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing' to='ringing'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing' to='idle'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='idle' to='ringing'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='ringing' to='connected_as_callee'>
+     <attr name='weight' value='TT'/>
+   </edge>
+   <edge from='connected_as_callee' to='ringing'>
+     <attr name='weight' value='TT'/>
+   </edge>
+
+
+ </graph>
+</gxl>
