@@ -99,7 +99,7 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
     writeSolverLog(outputPrefix.map(_ + "_opt.txt"), optimisticSolverInstance);
     if(optimisticResult == SATISFIABLE) NOT_SATISFIED;
     else{
-      if(optimisticResult == UNSATISFIABLE && optimisticSolverInstance.insights.forall(!_.dependOnMaybe))
+      if(false && optimisticResult == UNSATISFIABLE && optimisticSolverInstance.insights.forall(!_.dependOnMaybe))
         SATISFIED;
       else{
         val pessimisticSolverInstance = solver.create(pessimistic(property), solverLogPrefix.map(_ + "_pes.log"));
