@@ -77,11 +77,13 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Solve
       unsatCore = true;
   }
 
+  override def input : Seq[String] = translate(formulae);
+
   protected def translate(formulae: Seq[LtlFormula]) : Seq[String] = formulae.map(_.toPLTLMup + "\n");
 
   private def processInput(outputStream : OutputStream) : Unit = {
     val writer = new OutputStreamWriter(outputStream);
-    translate(formulae).foreach(writer.write);
+    input.foreach(writer.write);
     writer.close();
   }
 

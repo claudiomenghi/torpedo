@@ -21,7 +21,7 @@ import java.io.FileNotFoundException
 
 import thrive.ltl._
 import thrive.pks.PartialKripkeStructure
-import thrive.solver.{HybridPLTLMup, Solver}
+import thrive.solver.{HybridPLTLMup, PLTLMup, Solver}
 
 import scala.io.Source
 
@@ -37,6 +37,11 @@ object Main {
     }
   }
 
+  def writeSolverInput(pks : PartialKripkeStructure, property : LtlFormula, options: Options) : Unit = {
+    options.solverInput.foreach(prefix => pks.writeOptimisticSolverInput(options.solver, property, prefix));
+    options.solverInput.foreach(prefix => pks.writePessimisticSolverInput(options.solver, property, prefix));
+  }
+
   def checkProperty(ksFilename : String, propertyFilename : String, options: Options) : Unit = {
     val ks = PartialKripkeStructure(ksFilename);
     val property = readProperty(propertyFilename);
@@ -44,15 +49,17 @@ object Main {
       println("Input/output error on PKS!");
     else if(property.isEmpty)
       println("Input/output error on property!");
-    else
+    else {
+      writeSolverInput(ks.head, property.get, options);
       println(ks.head.check(options.solver, property.get, options.solverLog, options.output));
+    }
   }
 
   def checkProperty(name : String, property : LtlFormula, ks : PartialKripkeStructure, solver : Solver) : Unit = {
     println("Checking property " + name + ":");
     println("    " + property.toPLTLMup);
-    ks.writeOptimisticPLTLFile(property, name + "_opt.pltl");
-    ks.writePessimisticPLTLFile(property, name + "_pes.pltl");
+    ks.writeOptimisticSolverInput(PLTLMup, property, name + "_opt.pltl");
+    ks.writePessimisticSolverInput(PLTLMup, property, name + "_pes.pltl");
     println("    " + ks.check(solver, property, Some(name), Some(name)));
     println("");
   }

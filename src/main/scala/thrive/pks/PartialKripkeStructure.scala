@@ -84,14 +84,16 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
   private def pessimistic(property : LtlFormula) : Seq[Clause] =
     distinct ++ transitionPredicate ++ statePredicate(a => !a) ++ Seq(initialPredicate, transformProperty(property));
 
-  private def writePTLTFile(properties : Seq[Clause], filename : String) : Unit =
-    Writer.write(filename, properties.map(_.toPLTLMup));
+  private def writeSolverInputFile(solver : Solver, properties : Seq[Clause], filename : String) : Unit = {
+    val inputs = solver.create(properties, None).input;
+    Writer.write(filename, inputs);
+  }
 
-  def writeOptimisticPLTLFile(property : LtlFormula, filename : String) : Unit =
-    writePTLTFile(optimistic(property), filename);
+  def writeOptimisticSolverInput(solver : Solver, property : LtlFormula, filename : String) : Unit =
+    writeSolverInputFile(solver, optimistic(property), filename);
 
-  def writePessimisticPLTLFile(property : LtlFormula, filename : String) : Unit =
-    writePTLTFile(pessimistic(property), filename);
+  def writePessimisticSolverInput(solver : Solver, property : LtlFormula, filename : String) : Unit =
+    writeSolverInputFile(solver, pessimistic(property), filename);
 
   def check(solver : Solver, property : LtlFormula, solverLogPrefix : Option[String],
             outputPrefix : Option[String]) : ModelCheckerResult = {

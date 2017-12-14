@@ -21,6 +21,8 @@ import thrive.insights.Insight
 
 trait SolverInstance {
 
+  def input : Seq[String];
+
   def check() : SolverResult
 
   def insights : Seq[Insight];
