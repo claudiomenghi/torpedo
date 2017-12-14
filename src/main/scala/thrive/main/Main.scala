@@ -37,7 +37,7 @@ object Main {
     }
   }
 
-  def checkProperty(ksFilename : String, propertyFilename : String, solver : Solver) : Unit = {
+  def checkProperty(ksFilename : String, propertyFilename : String, options: Options) : Unit = {
     val ks = PartialKripkeStructure(ksFilename);
     val property = readProperty(propertyFilename);
     if(ks.isEmpty)
@@ -45,7 +45,7 @@ object Main {
     else if(property.isEmpty)
       println("Input/output error on property!");
     else
-      println(ks.head.check(solver, property.get, None));
+      println(ks.head.check(options.solver, property.get, options.solverLog, options.output));
   }
 
   def checkProperty(name : String, property : LtlFormula, ks : PartialKripkeStructure, solver : Solver) : Unit = {
@@ -53,17 +53,19 @@ object Main {
     println("    " + property.toPLTLMup);
     ks.writeOptimisticPLTLFile(property, name + "_opt.pltl");
     ks.writePessimisticPLTLFile(property, name + "_pes.pltl");
-    println("    " + ks.check(solver, property, Some(name)));
+    println("    " + ks.check(solver, property, Some(name), Some(name)));
     println("");
   }
 
   def main(args: Array[String]): Unit = {
     if(args.length < 2){
-      println("Usage: thrive <PKS XML file> <property file>");
+      println("Usage: thrive [options] <PKS XML file> <property file>");
     }
     else{
       val files = args.takeRight(2);
-      checkProperty(files.head, files(1), HybridPLTLMup);
+      val options = DefaultOptions;
+      if(options.processCommandLineArguments(args.dropRight(2).toList))
+        checkProperty(files.head, files(1), options);
     }
   }
 
