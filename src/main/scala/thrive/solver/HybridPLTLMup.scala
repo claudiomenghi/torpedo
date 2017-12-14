@@ -39,6 +39,7 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
 
   def normalized(formula: LtlFormula) : LtlFormula =
     formula match {
+      case Before(f, g) => Before(normalized(f), normalized(g));
       case G(f) => Before(False, normalized(!f))
       case F(f) => Until(True, normalized(f))
       case True => True;
