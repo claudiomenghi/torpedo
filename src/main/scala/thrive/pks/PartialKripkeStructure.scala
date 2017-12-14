@@ -132,7 +132,9 @@ object PartialKripkeStructure {
     val name = node.attributes.asAttrMap("name");
     val value = node.attributes.asAttrMap("value");
     value match {
+      case "TT" => Some(AtomicFormula(name));
       case "T" => Some(AtomicFormula(name));
+      case "FF" => Some(!AtomicFormula(name));
       case "F" => Some(!AtomicFormula(name));
       case "M" => None;
     }
