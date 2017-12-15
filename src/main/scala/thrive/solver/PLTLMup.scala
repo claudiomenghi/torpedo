@@ -21,19 +21,17 @@ import java.io.{InputStream, OutputStream, OutputStreamWriter}
 
 import thrive.insights.{Clause, Insight}
 import thrive.ltl.LtlFormula
-import thrive.utilities.Writer
+import thrive.utilities.{ProcessHandler, Writer}
 
 import scala.io.Source
-import scala.sys.process.{Process, ProcessIO}
 
-class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends SolverInstance {
+class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends ProcessHandler with SolverInstance {
 
-  protected def COMMAND = "docker run -i pltl-mup";
   protected val SUCCESS = 0;
 
+  override protected def command = "docker run -i pltl-mup";
+
   protected var result : SolverResult = UNKNOWN;
-  private val process = Process(COMMAND);
-  private val io = new ProcessIO(processInput, processOutput, processError);
 
   private val formulae = clauses.map(_.clause);
   private val possibleInsights = clauses.map(_.insight).toArray;
@@ -81,24 +79,22 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Solve
 
   protected def translate(formulae: Seq[LtlFormula]) : Seq[String] = formulae.map(_.toPLTLMup + "\n");
 
-  private def processInput(outputStream : OutputStream) : Unit = {
+  override protected def processInput(outputStream : OutputStream) : Unit = {
     val writer = new OutputStreamWriter(outputStream);
     input.foreach(writer.write);
     writer.close();
   }
 
-  private def processOutput(inputStream: InputStream) : Unit = {
+  override protected def processOutput(inputStream: InputStream) : Unit = {
     val lines = Source.fromInputStream(inputStream).getLines.toSeq;
     lines.foreach(processLine);
     logFilename.foreach(Writer.write(_, lines));
   }
 
-  protected def processError(inputStream: InputStream) : Unit = {
+  override protected def processError(inputStream: InputStream) : Unit = {
     val lines = Source.fromInputStream(inputStream).getLines;
     lines.foreach(println);
   }
-
-  protected def exitValue() : Int = process.run(io).exitValue();
 
   def check() : SolverResult = {
     if(!alreadyChecked && exitValue() != SUCCESS) {

@@ -24,7 +24,7 @@ import thrive.ltl._
 
 class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends PLTLMup(clauses, logFilename) {
 
-  override protected def COMMAND = "docker run -i pltl-mup-hybrid";
+  override protected def command = "docker run -i pltl-mup-hybrid";
 
   override protected def translate(formulae: Seq[LtlFormula]) : Seq[String] =
     Seq(formulae.map("(" + _.toTRP + ")").mkString(" & "));
