@@ -42,6 +42,8 @@ abstract class ProcessHandler(logFilename : Option[String]) {
   }
 
   private def processError(inputStream: InputStream) : Unit = {
+    //Some output is lost if the error stream is not read
+    Source.fromInputStream(inputStream).getLines.toSeq;
     inputStream.close();
   }
 
@@ -66,7 +68,5 @@ abstract class ProcessHandler(logFilename : Option[String]) {
       result;
     }
   }
-
-
 
 }

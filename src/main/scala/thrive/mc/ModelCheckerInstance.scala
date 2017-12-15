@@ -17,25 +17,10 @@
   */
 package thrive.mc
 
-sealed abstract class ModelCheckerResult{
-  def errorFound : Boolean = true;
-}
+trait ModelCheckerInstance {
 
-case object SATISFIED extends ModelCheckerResult{
-  override def toString: String = "Satisfied!";
-  override def errorFound : Boolean = false;
-}
+  def input : Seq[String];
 
-case object POSSIBLY_SATISFIED extends ModelCheckerResult{
-  override def toString: String = "Possibly satisfied!";
-  override def errorFound : Boolean = false;
-}
+  def check() : ModelCheckerResult;
 
-case object NOT_SATISFIED extends ModelCheckerResult{
-  override def toString: String = "Not satisfied!";
-  override def errorFound : Boolean = false;
-}
-
-case object VERIFICATION_ERROR extends ModelCheckerResult{
-  override def toString: String = "Error encountered!";
 }

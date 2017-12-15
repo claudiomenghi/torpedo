@@ -17,11 +17,8 @@
   */
 package thrive.mc
 
-import thrive.ltl.LtlFormula
-import thrive.solver.Solver
-
 trait ModelChecker {
 
-  def check(solver : Solver, property : LtlFormula, logBasename : String) : ModelCheckerResult;
+  def create(input  : Seq[String], logFilename : Option[String]) : ModelCheckerInstance;
 
 }

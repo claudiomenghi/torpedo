@@ -36,7 +36,7 @@ object Main {
     }
   }
 
-  private def checkProperty(ksFilename : String, propertyFilename : String, options: Options) : Unit = {
+  private def checkProperty(ksFilename : String, propertyFilename : String, opt: Options) : Unit = {
     val ks = PartialKripkeStructure(ksFilename);
     val property = readProperty(propertyFilename);
     if(ks.isEmpty)
@@ -44,7 +44,7 @@ object Main {
     else if(property.isEmpty)
       println("Input/output error on property!");
     else
-      println(ks.head.check(options.solver, property.get, options.solverInput, options.solverLog, options.output));
+      println(ks.head.check(opt.solver, opt.modelChecker, property.get, opt.solverInput, opt.solverLog, opt.output));
   }
 
   def main(args: Array[String]): Unit = {

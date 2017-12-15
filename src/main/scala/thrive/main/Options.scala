@@ -17,9 +17,10 @@
   */
 package thrive.main
 
+import thrive.mc.{ModelChecker, NuSMV}
 import thrive.solver.{HybridPLTLMup, PLTLMup, Solver}
 
-sealed class Options(var solver : Solver,
+sealed class Options(var solver : Solver, var modelChecker : ModelChecker,
                      var solverInput : Option[String], var solverLog : Option[String], var output : Option[String]) {
 
   def processCommandLineArguments(args : List[String]) : Boolean =
@@ -35,7 +36,7 @@ sealed class Options(var solver : Solver,
 
 }
 
-case object DefaultOptions extends Options(HybridPLTLMup, None, None, None);
+case object DefaultOptions extends Options(HybridPLTLMup, NuSMV, None, None, None);
 
 
 

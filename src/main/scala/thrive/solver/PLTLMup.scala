@@ -17,13 +17,9 @@
   */
 package thrive.solver
 
-import java.io.InputStream
-
 import thrive.insights.{Clause, Insight}
 import thrive.ltl.LtlFormula
 import thrive.utilities.ProcessHandler
-
-import scala.io.Source
 
 class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
   extends ProcessHandler(logFilename) with SolverInstance {

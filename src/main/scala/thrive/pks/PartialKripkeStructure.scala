@@ -20,53 +20,62 @@ package thrive.pks
 import java.io.FileNotFoundException
 
 import org.xml.sax.SAXParseException
+import thrive.insights.Clause
 import thrive.ltl._
 import thrive.mc._
-import thrive.pks.encoders.LTLEncoder
-import thrive.solver.{SATISFIABLE, Solver, SolverInstance, UNSATISFIABLE}
+import thrive.pks.encoders.{LTLEncoder, SMVEncoder}
+import thrive.solver.Solver
 import thrive.utilities.Writer
 
 import scala.xml.{Node, XML}
 
 case class PartialKripkeStructure(name : String, states : List[State], transitions : List[Transition]) {
 
-  private final val ENABLE_OPTIMIZATION : Boolean = false;
-
   require(states.forall(s => transitions.exists(_.from == s)), "There is a state without outgoing transitions!");
 
   private[pks] val atomicFormulae : Set[AtomicFormula] = states.flatMap(_.atomicFormulae).toSet;
 
-  private def writeSolverInputFile(solverInstance: SolverInstance, filename : String) : Unit =
-    Writer.write(filename, solverInstance.input);
+  private def writeInputFile(input : Seq[String], filename : String) : Unit = Writer.write(filename, input);
 
-  def check(solver : Solver, property : LtlFormula, solverInputPrefix : Option[String],
-            solverLogPrefix : Option[String], outputPrefix : Option[String]) : ModelCheckerResult = {
+  def writeOutput(result : ModelCheckerResult, property : LtlFormula, solver : Solver,
+                  inputPrefix : Option[String], logPrefix : Option[String], output : String) : Unit = {
 
-    def writeSolverLog(logFilename : Option[String], solverInstance: SolverInstance) : Unit =
-      logFilename.foreach(log => Writer.write(log, solverInstance.insights.flatMap(_.explain)));
-
-    val encoder = LTLEncoder(this);
-    val optimisticSolverInstance = solver.create(encoder.optimistic(property), solverLogPrefix.map(_ + "_opt.log"));
-    solverInputPrefix.foreach(prefix => writeSolverInputFile(optimisticSolverInstance, prefix));
-    val optimisticResult = optimisticSolverInstance.check();
-    writeSolverLog(outputPrefix.map(_ + "_opt.txt"), optimisticSolverInstance);
-    if(optimisticResult == SATISFIABLE) NOT_SATISFIED;
-    else{
-      if(ENABLE_OPTIMIZATION &&
-          optimisticResult == UNSATISFIABLE &&
-          optimisticSolverInstance.insights.forall(!_.dependOnMaybe))
-        SATISFIED;
-      else{
-        val pessimisticSolverInstance =
-          solver.create(encoder.pessimistic(property), solverLogPrefix.map(_ + "_pes.log"));
-        solverInputPrefix.foreach(prefix => writeSolverInputFile(pessimisticSolverInstance, prefix));
-        val pessimisticResult = pessimisticSolverInstance.check();
-        writeSolverLog(outputPrefix.map(_ + "_pes.txt"), pessimisticSolverInstance);
-        if(pessimisticResult == UNSATISFIABLE) SATISFIED;
-        else if (optimisticResult.errorFound || pessimisticResult.errorFound) VERIFICATION_ERROR;
-        else POSSIBLY_SATISFIED;
-      }
+    def writeInsights(model : Seq[Clause]) : Unit = {
+      val solverInstance = solver.create(model, logPrefix.map(_ + "_solver.log"));
+      inputPrefix.foreach(prefix => writeInputFile(solverInstance.input, prefix + "_solver.in"));
+      solverInstance.check();
+      Writer.write(output, solverInstance.insights.flatMap(_.explain));
     }
+
+    result match {
+      case SATISFIED => writeInsights(LTLEncoder(this).pessimistic(property));
+      case POSSIBLY_SATISFIED => writeInsights(LTLEncoder(this).optimistic(property));
+      case _ =>
+    }
+  }
+
+  private def checkProperty(mc : ModelChecker, property : LtlFormula, inputPrefix : Option[String],
+                            logPrefix : Option[String]) : ModelCheckerResult = {
+    val encoder = SMVEncoder(this);
+    val optimisticSolverInstance = mc.create(encoder.optimistic(property), logPrefix.map(_ + "_mc_opt.log"));
+    inputPrefix.foreach(prefix => writeInputFile(optimisticSolverInstance.input, prefix + "_mc_opt.in"));
+    val optimisticResult = optimisticSolverInstance.check();
+    if(optimisticResult == NOT_SATISFIED) NOT_SATISFIED;
+    else{
+      val pessimisticSolverInstance = mc.create(encoder.pessimistic(property), logPrefix.map(_ + "_mc_pes.log"));
+      inputPrefix.foreach(prefix => writeInputFile(pessimisticSolverInstance.input, prefix + "_mc_pes.in"));
+      val pessimisticResult = pessimisticSolverInstance.check();
+      if(pessimisticResult == SATISFIED) SATISFIED;
+      else if (optimisticResult.errorFound || pessimisticResult.errorFound) VERIFICATION_ERROR;
+      else POSSIBLY_SATISFIED;
+    }
+  }
+
+  def check(solver : Solver, mc : ModelChecker, property : LtlFormula,
+            inputPrefix : Option[String], logPrefix : Option[String], output : Option[String]) : ModelCheckerResult = {
+    val result = checkProperty(mc, property, inputPrefix, logPrefix);
+    output.foreach(writeOutput(result, property, solver, inputPrefix, logPrefix, _));
+    result;
   }
 
   def toXML : Seq[String] = {
