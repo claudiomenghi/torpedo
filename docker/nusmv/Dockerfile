@@ -1,7 +1,7 @@
-FROM alpine
+FROM busybox
 MAINTAINER Alessandro M. Rizzi <alessandromaria.rizzi@polimi.it>
 
-RUN useradd -ms /bin/bash dev
+RUN adduser -D -u 1000 dev
 ADD NuSMV-2.6.0-linux64.tar.gz /home/dev/
 ADD run.sh /home/dev/
 RUN chown -R dev:dev /home/dev
