@@ -31,11 +31,13 @@ case class AtomicFormula(id : String) extends Literal {
 
   override def toTRP : String = id;
 
+  override def toSMV : String = id;
+
   override def atomicFormula : AtomicFormula = this;
 
   override def complementClosure : Set[Literal] = Set(positive, !negative);
 
-  override def complementClosed : AugmentedAtomicFormula = positive;
+  override def complementClosed(useBefore : Boolean) : AugmentedAtomicFormula = positive;
 
   override def original: Literal = this;
 
@@ -49,7 +51,9 @@ class AugmentedAtomicFormula(id : String, value : Boolean) extends AtomicFormula
 
   override def toTRP: String = id + (if(value) "_p" else "_n");
 
-  override def complementClosed : AugmentedAtomicFormula = this;
+  override def toSMV : String = id + (if(value) "_p" else "_n");
+
+  override def complementClosed(useBefore : Boolean) : AugmentedAtomicFormula = this;
 
   override def original: Literal =
     if(value) AtomicFormula(id);

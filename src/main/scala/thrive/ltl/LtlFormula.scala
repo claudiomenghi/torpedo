@@ -33,7 +33,9 @@ abstract class LtlFormula(protected val priority : Int) {
 
   def toTRP : String;
 
-  def complementClosed : LtlFormula;
+  def toSMV : String;
+
+  def complementClosed(useBefore : Boolean) : LtlFormula;
 
   def enclose(f : LtlFormula => String, nextPriority : Int) : String =
     if(nextPriority < priority)
@@ -54,16 +56,20 @@ case class Negation(formula: LtlFormula) extends LtlFormula(0){
 
   override def toTRP : String = "~(" + formula.toTRP + ")";
 
-  override def complementClosed : LtlFormula =
+  override def toSMV : String = "!(" + formula.toSMV + ")";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula =
     formula match {
-      case Conjunction(formulae) => Disjunction(formulae.map(!_)).complementClosed;
-      case Disjunction(formulae) => Conjunction(formulae.map(!_)).complementClosed;
-      case Implication(lhs, rhs) => (lhs & !rhs).complementClosed;
-      case Before(lhs, rhs) => Until(!lhs, rhs).complementClosed;
-      case Until(lhs, rhs) => Before(!lhs, rhs).complementClosed;
-      case X(f) => X(!f).complementClosed;
-      case G(f) => F(!f).complementClosed;
-      case F(f) => G(!f).complementClosed;
+      case Conjunction(formulae) => Disjunction(formulae.map(!_)).complementClosed(useBefore);
+      case Disjunction(formulae) => Conjunction(formulae.map(!_)).complementClosed(useBefore);
+      case Implication(lhs, rhs) => (lhs & !rhs).complementClosed(useBefore);
+      case Before(lhs, rhs) => Until(!lhs, rhs).complementClosed(useBefore);
+      case Release(lhs, rhs) => Until(!lhs, !rhs).complementClosed(useBefore);
+      case Until(lhs, rhs) if useBefore => Before(!lhs, rhs).complementClosed(useBefore);
+      case Until(lhs, rhs) => Release(!lhs, !rhs).complementClosed(useBefore);
+      case X(f) => X(!f).complementClosed(useBefore);
+      case G(f) => F(!f).complementClosed(useBefore);
+      case F(f) => G(!f).complementClosed(useBefore);
       case True => False;
       case False => True;
     }
@@ -77,6 +83,8 @@ case class Conjunction(formulae : Seq[LtlFormula]) extends LtlFormula(10){
   override def toPLTLMup : String = formulae.map(_.enclose(_.toPLTLMup, priority)).mkString(" & ");
 
   override def toTRP : String = formulae.map("(" + _.toTRP + ")").mkString(" & ");
+
+  override def toSMV : String = formulae.map("(" + _.toSMV + ")").mkString(" & ");
 
   override def equals(o: scala.Any): Boolean =
     o match {
@@ -93,7 +101,8 @@ case class Conjunction(formulae : Seq[LtlFormula]) extends LtlFormula(10){
       case _ => this;
     }
 
-  override def complementClosed : LtlFormula = Conjunction(formulae.map(_.complementClosed));
+  override def complementClosed(useBefore : Boolean) : LtlFormula =
+    Conjunction(formulae.map(_.complementClosed(useBefore)));
 
 }
 
@@ -113,6 +122,8 @@ case class Disjunction(formulae : Seq[LtlFormula]) extends LtlFormula(11){
 
   override def toTRP : String = formulae.map("(" + _.toTRP + ")").mkString(" | ");
 
+  override def toSMV : String = formulae.map("(" + _.toSMV + ")").mkString(" | ");
+
   def simplify : LtlFormula =
     formulae.size match {
       case 0 => False;
@@ -120,7 +131,8 @@ case class Disjunction(formulae : Seq[LtlFormula]) extends LtlFormula(11){
       case _ => this;
     }
 
-  override def complementClosed : LtlFormula = Disjunction(formulae.map(_.complementClosed));
+  override def complementClosed(useBefore : Boolean) : LtlFormula =
+    Disjunction(formulae.map(_.complementClosed(useBefore)));
 
 }
 
@@ -130,7 +142,10 @@ case class Implication(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(12
 
   override def toTRP : String = "(" + lhs.toTRP + ") => (" + rhs.toTRP + ")";
 
-  override def complementClosed : LtlFormula = (!lhs).complementClosed | rhs.complementClosed;
+  override def toSMV : String = "(" + lhs.toSMV + ") -> (" + rhs.toSMV + ")";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula =
+    (!lhs).complementClosed(useBefore) | rhs.complementClosed(useBefore);
 }
 
 case class Before(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
@@ -139,7 +154,28 @@ case class Before(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
 
   override def toTRP : String = (!Until(!lhs, rhs)).toTRP;
 
-  override def complementClosed : LtlFormula = Before(lhs.complementClosed, rhs.complementClosed);
+  override def toSMV : String = Release(lhs, !rhs).toSMV;
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula =
+    if(useBefore)
+      Before(lhs.complementClosed(useBefore), rhs.complementClosed(useBefore));
+    else
+      Release(lhs.complementClosed(useBefore), (!rhs).complementClosed(useBefore));
+}
+
+case class Release(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
+
+  override def toPLTLMup : String = Before(lhs, !rhs).toPLTLMup;
+
+  override def toTRP : String = (!Until(!lhs, rhs)).toTRP;
+
+  override def toSMV : String = "(" + lhs.toSMV + ") V (" + rhs.toSMV + ")";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula =
+    if(useBefore)
+      Before(lhs.complementClosed(useBefore), (!rhs).complementClosed(useBefore));
+    else
+      Release(lhs.complementClosed(useBefore), rhs.complementClosed(useBefore));
 }
 
 case class Until(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
@@ -148,7 +184,10 @@ case class Until(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
 
   override def toTRP : String = "(" + lhs.toTRP + ") until (" + rhs.toTRP + ")";
 
-  override def complementClosed : LtlFormula = Until(lhs.complementClosed, rhs.complementClosed);
+  override def toSMV : String = "(" + lhs.toSMV + ") U (" + rhs.toSMV + ")";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula =
+    Until(lhs.complementClosed(useBefore), rhs.complementClosed(useBefore));
 }
 
 case class X(formula: LtlFormula) extends LtlFormula(0){
@@ -157,7 +196,9 @@ case class X(formula: LtlFormula) extends LtlFormula(0){
 
   override def toTRP : String = "next(" + formula.toTRP + ")";
 
-  override def complementClosed : LtlFormula = X(formula.complementClosed);
+  override def toSMV : String = "X(" + formula.toSMV + ")";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula = X(formula.complementClosed(useBefore));
 }
 
 case class G(formula: LtlFormula) extends LtlFormula(0){
@@ -166,7 +207,9 @@ case class G(formula: LtlFormula) extends LtlFormula(0){
 
   override def toTRP : String = "always(" + formula.toTRP + ")";
 
-  override def complementClosed : LtlFormula = G(formula.complementClosed);
+  override def toSMV : String = "G(" + formula.toSMV + ")";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula = G(formula.complementClosed(useBefore));
 }
 
 case class F(formula: LtlFormula) extends LtlFormula(0){
@@ -175,7 +218,9 @@ case class F(formula: LtlFormula) extends LtlFormula(0){
 
   override def toTRP : String = "sometime(" + formula.toTRP + ")";
 
-  override def complementClosed : LtlFormula = F(formula.complementClosed);
+  override def toSMV : String = "F(" + formula.toSMV + ")";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula = F(formula.complementClosed(useBefore));
 }
 
 case object True extends LtlFormula(0){
@@ -184,7 +229,9 @@ case object True extends LtlFormula(0){
 
   override def toTRP : String = "True";
 
-  override def complementClosed : LtlFormula = this;
+  override def toSMV : String = "TRUE";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula = this;
 }
 
 case object False extends LtlFormula(0){
@@ -193,5 +240,7 @@ case object False extends LtlFormula(0){
 
   override def toTRP : String = "False";
 
-  override def complementClosed : LtlFormula = this;
+  override def toSMV : String = "FALSE";
+
+  override def complementClosed(useBefore : Boolean) : LtlFormula = this;
 }

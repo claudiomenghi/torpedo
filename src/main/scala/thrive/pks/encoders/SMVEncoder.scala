@@ -32,10 +32,7 @@ case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) 
     "state = " + state.name + " : " + stateSequence(transitionMap(state)) + ";";
 
   private def stateAtomicFormulae(state : State, f : AtomicFormula => Literal) : Seq[(String, String)] =
-    state.approximation(pks.atomicFormulae, f).filter(_._1.isPositive).map(c => (c._1.atomicFormula.id, p(state).id));
-
-
-
+    state.approximation(pks.atomicFormulae, f).filter(_._1.isPositive).map(c => (c._1.toSMV, p(state).id));
 
   private def variables : Seq[String] = {
     val stateVariables : String = Array.range(0, pks.states.size).map("s" + _).mkString("state : {", ",", "};");
@@ -57,11 +54,14 @@ case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) 
     "ASSIGN" +: (states ++ propositions).map("\t" + _);
   }
 
-  private def toSVM(f : AtomicFormula => Literal) = "MODULE main" +: (variables ++ assign(f)).map("\t" + _);
+  private def ltlSpecification(property : LtlFormula) : Seq[String] =
+    Seq("LTLSPEC", "\t" + property.complementClosed(useBefore = false).toSMV);
 
+  private def toSVM(property: LtlFormula, f : AtomicFormula => Literal) =
+    "MODULE main" +: (variables ++ assign(f) ++ ltlSpecification(property)).map("\t" + _);
 
-  override def optimistic(property: LtlFormula) : Seq[String] = toSVM(p => p);
+  override def optimistic(property: LtlFormula) : Seq[String] = toSVM(property, p => p);
 
-  override def pessimistic(property: LtlFormula) : Seq[String] = toSVM(p => !p);
+  override def pessimistic(property: LtlFormula) : Seq[String] = toSVM(property, p => !p);
 
 }

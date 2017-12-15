@@ -25,11 +25,13 @@ case class NegatedAtomicFormula(atom : AtomicFormula) extends Literal {
 
   override def toTRP: String = "not (" + atom.toTRP + ")";
 
+  override def toSMV : String = "!(" + atom.toSMV + ")";
+
   override def atomicFormula : AtomicFormula = atom;
 
   override def complementClosure : Set[Literal] = atom.complementClosure.map(!_);
 
-  override def complementClosed : AugmentedAtomicFormula = atom.negative;
+  override def complementClosed(useBefore : Boolean) : AugmentedAtomicFormula = atom.negative;
 
   override def original: Literal = !atom.original;
 
