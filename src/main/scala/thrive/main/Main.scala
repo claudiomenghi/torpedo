@@ -44,7 +44,7 @@ object Main {
     else if(property.isEmpty)
       println("Input/output error on property!");
     else
-      println(ks.head.check(opt.solver, opt.modelChecker, property.get, opt.solverInput, opt.solverLog, opt.output));
+      println(ks.head.check(opt.solver, opt.modelChecker, property.get, opt.input, opt.log, opt.trace, opt.output));
   }
 
   def main(args: Array[String]): Unit = {

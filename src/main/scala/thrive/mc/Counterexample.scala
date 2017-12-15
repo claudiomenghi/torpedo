@@ -17,12 +17,6 @@
   */
 package thrive.mc
 
-trait ModelCheckerInstance {
-
-  def input : Seq[String];
-
-  def check() : ModelCheckerResult;
-
-  def counterexample : Counterexample;
-
+case class Counterexample(trace : Seq[String], loop : Option[Int]) {
+  loop.foreach(l => require(l >= 0 && l < trace.size));
 }

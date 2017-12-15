@@ -55,25 +55,35 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
   }
 
   private def checkProperty(mc : ModelChecker, property : LtlFormula, inputPrefix : Option[String],
-                            logPrefix : Option[String]) : ModelCheckerResult = {
+                            logPrefix : Option[String], traceFilename : Option[String]) : ModelCheckerResult = {
     val encoder = SMVEncoder(this);
+    def writeTrace(modelCheckerInstance: ModelCheckerInstance) : Unit =
+      traceFilename.foreach(Writer.write(_, encoder.trace(modelCheckerInstance.counterexample).output));
+
     val optimisticSolverInstance = mc.create(encoder.optimistic(property), logPrefix.map(_ + "_mc_opt.log"));
     inputPrefix.foreach(prefix => writeInputFile(optimisticSolverInstance.input, prefix + "_mc_opt.in"));
     val optimisticResult = optimisticSolverInstance.check();
-    if(optimisticResult == NOT_SATISFIED) NOT_SATISFIED;
+    if(optimisticResult == NOT_SATISFIED) {
+      writeTrace(optimisticSolverInstance);
+      NOT_SATISFIED;
+    }
     else{
       val pessimisticSolverInstance = mc.create(encoder.pessimistic(property), logPrefix.map(_ + "_mc_pes.log"));
       inputPrefix.foreach(prefix => writeInputFile(pessimisticSolverInstance.input, prefix + "_mc_pes.in"));
       val pessimisticResult = pessimisticSolverInstance.check();
       if(pessimisticResult == SATISFIED) SATISFIED;
       else if (optimisticResult.errorFound || pessimisticResult.errorFound) VERIFICATION_ERROR;
-      else POSSIBLY_SATISFIED;
+      else {
+        writeTrace(pessimisticSolverInstance);
+        POSSIBLY_SATISFIED;
+      }
     }
   }
 
   def check(solver : Solver, mc : ModelChecker, property : LtlFormula,
-            inputPrefix : Option[String], logPrefix : Option[String], output : Option[String]) : ModelCheckerResult = {
-    val result = checkProperty(mc, property, inputPrefix, logPrefix);
+            inputPrefix : Option[String], logPrefix : Option[String],
+            traceFilename : Option[String], output : Option[String]) : ModelCheckerResult = {
+    val result = checkProperty(mc, property, inputPrefix, logPrefix, traceFilename);
     output.foreach(writeOutput(result, property, solver, inputPrefix, logPrefix, _));
     result;
   }

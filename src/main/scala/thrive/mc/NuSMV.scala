@@ -26,7 +26,7 @@ class NuSMV(smv : Seq[String], logFilename : Option[String])
 
   private var trace : Seq[String] = Seq();
 
-  private var loopStart : Int = 0;
+  private var loopStart : Option[Int] = None;
 
   override protected def command: String = "docker run -i nusmv";
 
@@ -51,11 +51,12 @@ class NuSMV(smv : Seq[String], logFilename : Option[String])
       result = NOT_SATISFIED;
     val cl = line.split(" ").mkString("")
     if(cl == "--Loopstartshere")
-      loopStart = trace.size;
+      loopStart = Some(trace.size);
     if(cl.startsWith("state=s"))
       trace = trace :+ cl.split("=").last;
   }
 
+  override def counterexample = Counterexample(trace, loopStart);
 }
 
 object NuSMV extends ModelChecker {

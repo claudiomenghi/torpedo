@@ -20,13 +20,14 @@ package thrive.main
 import thrive.mc.{ModelChecker, NuSMV}
 import thrive.solver.{HybridPLTLMup, PLTLMup, Solver}
 
-sealed class Options(var solver : Solver, var modelChecker : ModelChecker,
-                     var solverInput : Option[String], var solverLog : Option[String], var output : Option[String]) {
+sealed class Options(var solver : Solver, var modelChecker : ModelChecker, var trace : Option[String],
+                     var input : Option[String], var log : Option[String], var output : Option[String]) {
 
   def processCommandLineArguments(args : List[String]) : Boolean =
     args match {
-      case "-i" :: filename :: rest => solverInput = Some(filename); processCommandLineArguments(rest);
-      case "-l" :: filename :: rest => solverLog = Some(filename); processCommandLineArguments(rest);
+      case "-c" :: filename :: rest => trace = Some(filename); processCommandLineArguments(rest);
+      case "-i" :: filename :: rest => input = Some(filename); processCommandLineArguments(rest);
+      case "-l" :: filename :: rest => log = Some(filename); processCommandLineArguments(rest);
       case "-o" :: filename :: rest => output = Some(filename); processCommandLineArguments(rest);
       case "-s" :: "pltlmup" :: rest => solver = PLTLMup; processCommandLineArguments(rest);
       case "-s" :: "hybrid" :: rest => solver = HybridPLTLMup; processCommandLineArguments(rest);
@@ -36,7 +37,7 @@ sealed class Options(var solver : Solver, var modelChecker : ModelChecker,
 
 }
 
-case object DefaultOptions extends Options(HybridPLTLMup, NuSMV, None, None, None);
+case object DefaultOptions extends Options(HybridPLTLMup, NuSMV, None, None, None, None);
 
 
 

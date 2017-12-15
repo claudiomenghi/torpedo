@@ -18,7 +18,8 @@
 package thrive.pks.encoders
 
 import thrive.ltl.{AtomicFormula, Literal, LtlFormula}
-import thrive.pks.{PartialKripkeStructure, State}
+import thrive.mc.Counterexample
+import thrive.pks.{PartialKripkeStructure, State, Trace}
 
 case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) {
 
@@ -29,7 +30,7 @@ case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) 
       states.map(p(_).id).mkString("{", ", ", "}");
 
   private def stateTransition(state: State) =
-    "state = " + state.name + " : " + stateSequence(transitionMap(state)) + ";";
+    "state = " + p(state).id + " : " + stateSequence(transitionMap(state)) + ";";
 
   private def stateAtomicFormulae(state : State, f : AtomicFormula => Literal) : Seq[(String, String)] =
     state.approximation(pks.atomicFormulae, f).filter(_._1.isPositive).map(c => (c._1.toSMV, p(state).id));
@@ -63,5 +64,10 @@ case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) 
   override def optimistic(property: LtlFormula) : Seq[String] = toSVM(property, p => p);
 
   override def pessimistic(property: LtlFormula) : Seq[String] = toSVM(property, p => !p);
+
+  def trace(counterexample: Counterexample) : Trace = {
+    val stateMap = p.toSeq.map(pair => pair._2.id -> pair._1).toMap;
+    Trace(counterexample.trace.map(stateMap), counterexample.loop);
+  }
 
 }

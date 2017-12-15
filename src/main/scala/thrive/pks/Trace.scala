@@ -15,14 +15,15 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   *
   */
-package thrive.mc
+package thrive.pks
 
-trait ModelCheckerInstance {
+case class Trace(trace : Seq[State], loopStart : Option[Int]) {
+  loopStart.foreach(l => require(l >= 0 && l < trace.size));
 
-  def input : Seq[String];
+  private def loopJump : Option[Int] = loopStart.map(ls => Math.min(ls + 1, trace.size - 1));
 
-  def check() : ModelCheckerResult;
+  private def loop : Seq[String] = loopJump.map(l => trace.size + " : GOTO " + l).toSeq;
 
-  def counterexample : Counterexample;
+  def output : Seq[String] = trace.zipWithIndex.map(x => x._2 + " : " + x._1.name) ++ loop;
 
 }
