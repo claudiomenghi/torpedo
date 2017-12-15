@@ -60,21 +60,21 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
     def writeTrace(modelCheckerInstance: ModelCheckerInstance) : Unit =
       traceFilename.foreach(Writer.write(_, encoder.trace(modelCheckerInstance.counterexample).output));
 
-    val optimisticSolverInstance = mc.create(encoder.optimistic(property), logPrefix.map(_ + "_mc_opt.log"));
-    inputPrefix.foreach(prefix => writeInputFile(optimisticSolverInstance.input, prefix + "_mc_opt.in"));
-    val optimisticResult = optimisticSolverInstance.check();
+    val optimisticModelCheckerInstance = mc.create(encoder.optimistic(property), logPrefix.map(_ + "_mc_opt.log"));
+    inputPrefix.foreach(prefix => writeInputFile(optimisticModelCheckerInstance.input, prefix + "_mc_opt.in"));
+    val optimisticResult = optimisticModelCheckerInstance.check();
     if(optimisticResult == NOT_SATISFIED) {
-      writeTrace(optimisticSolverInstance);
+      writeTrace(optimisticModelCheckerInstance);
       NOT_SATISFIED;
     }
     else{
-      val pessimisticSolverInstance = mc.create(encoder.pessimistic(property), logPrefix.map(_ + "_mc_pes.log"));
-      inputPrefix.foreach(prefix => writeInputFile(pessimisticSolverInstance.input, prefix + "_mc_pes.in"));
-      val pessimisticResult = pessimisticSolverInstance.check();
+      val pessimisticModelChecker = mc.create(encoder.pessimistic(property), logPrefix.map(_ + "_mc_pes.log"));
+      inputPrefix.foreach(prefix => writeInputFile(pessimisticModelChecker.input, prefix + "_mc_pes.in"));
+      val pessimisticResult = pessimisticModelChecker.check();
       if(pessimisticResult == SATISFIED) SATISFIED;
       else if (optimisticResult.errorFound || pessimisticResult.errorFound) VERIFICATION_ERROR;
       else {
-        writeTrace(pessimisticSolverInstance);
+        writeTrace(pessimisticModelChecker);
         POSSIBLY_SATISFIED;
       }
     }
