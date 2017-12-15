@@ -20,17 +20,9 @@ import thrive.insights._
 import thrive.ltl._
 import thrive.pks.{PartialKripkeStructure, State}
 
-case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause] {
+case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause](pks) {
 
   private final val USE_SLOW_STATE_PREDICATE : Boolean = true;
-
-  private val p = Array.range(0, pks.states.size).map(i => pks.states(i) -> AtomicFormula("s" + i)).toMap;
-
-  private val initialStates : Set[State] = pks.states.filter(_.isInitial).toSet;
-
-  private val transitionMap = pks.transitions.groupBy(_.from).map(x => x._1 -> x._2.map(_.to));
-
-  require(pks.states.toSet == transitionMap.keySet, "There is a state without outgoing transitions!");
 
   private def distinct : Seq[Clause] = {
     val sp = p.values.toArray;

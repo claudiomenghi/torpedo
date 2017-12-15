@@ -17,9 +17,21 @@
   */
 package thrive.pks.encoders
 
-import thrive.ltl.LtlFormula
+import thrive.ltl.{AtomicFormula, LtlFormula}
+import thrive.pks.{PartialKripkeStructure, State}
 
-trait Encoder[T] {
+abstract class Encoder[T] (pks: PartialKripkeStructure) {
+
+  protected val p : Map[State, AtomicFormula] =
+    Array.range(0, pks.states.size).map(i => pks.states(i) -> AtomicFormula("s" + i)).toMap;
+
+  protected val initialStates : Set[State] =
+    pks.states.filter(_.isInitial).toSet;
+
+  protected val transitionMap : Map[State, List[State]] =
+    pks.transitions.groupBy(_.from).map(x => x._1 -> x._2.map(_.to));
+
+  require(pks.states.toSet == transitionMap.keySet, "There is a state without outgoing transitions!");
 
   def optimistic(property : LtlFormula) : Seq[T];
 
