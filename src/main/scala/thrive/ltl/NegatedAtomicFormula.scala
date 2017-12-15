@@ -33,4 +33,6 @@ case class NegatedAtomicFormula(atom : AtomicFormula) extends Literal {
 
   override def original: Literal = !atom.original;
 
+  override def isPositive : Boolean = false;
+
 }

@@ -39,6 +39,8 @@ case class AtomicFormula(id : String) extends Literal {
 
   override def original: Literal = this;
 
+  override def isPositive : Boolean = true;
+
 }
 
 class AugmentedAtomicFormula(id : String, value : Boolean) extends AtomicFormula(id) {

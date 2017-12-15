@@ -27,4 +27,6 @@ abstract class Literal extends LtlFormula(0) {
 
   def original : Literal;
 
+  def isPositive : Boolean;
+
 }
