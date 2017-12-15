@@ -20,9 +20,9 @@ package thrive.pks
 import java.io.FileNotFoundException
 
 import org.xml.sax.SAXParseException
-import thrive.insights._
 import thrive.ltl._
 import thrive.mc._
+import thrive.pks.encoders.LTLEncoder
 import thrive.solver.{SATISFIABLE, Solver, SolverInstance, UNSATISFIABLE}
 import thrive.utilities.Writer
 
@@ -30,59 +30,11 @@ import scala.xml.{Node, XML}
 
 case class PartialKripkeStructure(name : String, states : List[State], transitions : List[Transition]) {
 
-  private val initialStates : Set[State] = states.filter(_.isInitial).toSet;
+  private final val ENABLE_OPTIMIZATION : Boolean = false;
 
-  private final val USE_SLOW_STATE_PREDICATE = true;
+  require(states.forall(s => transitions.exists(_.from == s)), "There is a state without outgoing transitions!");
 
-  private val atomicFormulae = states.flatMap(_.atomicFormulae).toSet;
-
-  private val p = Array.range(0, states.size).map(i => states(i) -> AtomicFormula("s" + i)).toMap;
-
-  private val transitionMap = transitions.groupBy(_.from).map(x => x._1 -> x._2.map(_.to));
-
-  require(states.toSet == transitionMap.keySet, "There is a state without outgoing transitions!");
-
-  private def distinct : Seq[Clause] = {
-    val sp = p.values.toArray;
-    val c = Array.range(0, sp.length - 1).map(i => sp(i) -> !Disjunction(Array.range(i+1, sp.length).map(sp)).simplify);
-    (c :+ Disjunction(sp)).map(G).map(Clause(_, PKSConstraint));
-  }
-
-  private def transitionPredicate(from : State, to : Seq[State]) = G(p(from) -> X(Disjunction(to.map(p)).simplify));
-
-  private def transitionPredicate : Seq[Clause] =
-    transitionMap.map(t => Clause(transitionPredicate(t._1, t._2), StateTransition(t._1, t._2))).toSeq;
-
-  private def initialPredicate : Clause =
-    Clause(Disjunction(initialStates.toSeq.map(s => p(s))).simplify, InitialState(initialStates.toSeq));
-
-  private def fastStatePredicate(f : AtomicFormula => Literal) : Seq[Clause] =
-    states.map { state =>
-      val (literals, dependOnMaybe) = state.approximation(atomicFormulae, f).unzip;
-      val insight = StatePredicate(state, literals.map(_.original).toSet, dependOnMaybe.exists(x => x));
-      Clause(G(p(state) -> Conjunction(literals).simplify), insight);
-    }
-
-  private def slowStatePredicate(f : AtomicFormula => Literal) : Seq[Clause] =
-    for{
-      s <- states;
-      (lit, maybeDependent) <- s.approximation(atomicFormulae, f)
-    }
-      yield Clause(G(p(s) -> lit), StatePredicate(s, Set(lit.original), maybeDependent));
-
-  private def statePredicate(f : AtomicFormula => Literal) : Seq[Clause] =
-    if(USE_SLOW_STATE_PREDICATE)
-      slowStatePredicate(f);
-    else
-      fastStatePredicate(f);
-
-  private def transformProperty(property : LtlFormula) : Clause = Clause(!property.complementClosed, Property);
-
-  private def optimistic(property : LtlFormula) : Seq[Clause] =
-    distinct ++ transitionPredicate ++ statePredicate(a => a) ++ Seq(initialPredicate, transformProperty(property));
-
-  private def pessimistic(property : LtlFormula) : Seq[Clause] =
-    distinct ++ transitionPredicate ++ statePredicate(a => !a) ++ Seq(initialPredicate, transformProperty(property));
+  private[pks] val atomicFormulae : Set[AtomicFormula] = states.flatMap(_.atomicFormulae).toSet;
 
   private def writeSolverInputFile(solverInstance: SolverInstance, filename : String) : Unit =
     Writer.write(filename, solverInstance.input);
@@ -93,16 +45,20 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
     def writeSolverLog(logFilename : Option[String], solverInstance: SolverInstance) : Unit =
       logFilename.foreach(log => Writer.write(log, solverInstance.insights.flatMap(_.explain)));
 
-    val optimisticSolverInstance = solver.create(optimistic(property), solverLogPrefix.map(_ + "_opt.log"));
+    val encoder = LTLEncoder(this);
+    val optimisticSolverInstance = solver.create(encoder.optimistic(property), solverLogPrefix.map(_ + "_opt.log"));
     solverInputPrefix.foreach(prefix => writeSolverInputFile(optimisticSolverInstance, prefix));
     val optimisticResult = optimisticSolverInstance.check();
     writeSolverLog(outputPrefix.map(_ + "_opt.txt"), optimisticSolverInstance);
     if(optimisticResult == SATISFIABLE) NOT_SATISFIED;
     else{
-      if(false && optimisticResult == UNSATISFIABLE && optimisticSolverInstance.insights.forall(!_.dependOnMaybe))
+      if(ENABLE_OPTIMIZATION &&
+          optimisticResult == UNSATISFIABLE &&
+          optimisticSolverInstance.insights.forall(!_.dependOnMaybe))
         SATISFIED;
       else{
-        val pessimisticSolverInstance = solver.create(pessimistic(property), solverLogPrefix.map(_ + "_pes.log"));
+        val pessimisticSolverInstance =
+          solver.create(encoder.pessimistic(property), solverLogPrefix.map(_ + "_pes.log"));
         solverInputPrefix.foreach(prefix => writeSolverInputFile(pessimisticSolverInstance, prefix));
         val pessimisticResult = pessimisticSolverInstance.check();
         writeSolverLog(outputPrefix.map(_ + "_pes.txt"), pessimisticSolverInstance);
