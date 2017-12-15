@@ -21,10 +21,14 @@ import java.io.FileWriter
 
 object Writer {
 
-  def write(filename : String, lines : Seq[String]) : Unit = {
-    val file = new FileWriter(filename);
+  private def write(filename : String, append : Boolean, lines : Seq[String]) : Unit = {
+    val file = new FileWriter(filename, append);
     lines.foreach(line => file.write(line + "\n"));
     file.close();
   }
+
+  def write(filename : String, lines : Seq[String]) : Unit = write(filename, append = false, lines);
+
+  def append(filename : String, lines : Seq[String]) : Unit = write(filename, append = true, lines);
 
 }

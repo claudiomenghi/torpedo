@@ -17,17 +17,16 @@
   */
 package thrive.solver
 
-import java.io.{InputStream, OutputStream, OutputStreamWriter}
+import java.io.InputStream
 
 import thrive.insights.{Clause, Insight}
 import thrive.ltl.LtlFormula
-import thrive.utilities.{ProcessHandler, Writer}
+import thrive.utilities.ProcessHandler
 
 import scala.io.Source
 
-class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends ProcessHandler with SolverInstance {
-
-  protected val SUCCESS = 0;
+class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
+  extends ProcessHandler(logFilename) with SolverInstance {
 
   override protected def command = "docker run -i pltl-mup";
 
@@ -39,8 +38,6 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Proce
   private var unsatCore = false;
 
   private var actualInsights : Seq[Insight] = Seq[Insight]();
-
-  private var alreadyChecked = false;
 
   override def insights : Seq[Insight] = actualInsights;
 
@@ -57,7 +54,7 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Proce
   protected def extractInsight(line : String) : Option[Insight] =
     extractClauseIndex(line).map(possibleInsights).filterNot(actualInsights.contains);
 
-  private def processLine(line : String) : Unit = {
+  override protected def processLine(line : String) : Unit = {
     if(line.startsWith("Satisfiable"))
       result = SATISFIABLE;
     if(line.startsWith("Unsatisfiable"))
@@ -79,33 +76,7 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends Proce
 
   protected def translate(formulae: Seq[LtlFormula]) : Seq[String] = formulae.map(_.toPLTLMup + "\n");
 
-  override protected def processInput(outputStream : OutputStream) : Unit = {
-    val writer = new OutputStreamWriter(outputStream);
-    input.foreach(writer.write);
-    writer.close();
-  }
-
-  override protected def processOutput(inputStream: InputStream) : Unit = {
-    val lines = Source.fromInputStream(inputStream).getLines.toSeq;
-    lines.foreach(processLine);
-    logFilename.foreach(Writer.write(_, lines));
-  }
-
-  override protected def processError(inputStream: InputStream) : Unit = {
-    val lines = Source.fromInputStream(inputStream).getLines;
-    lines.foreach(println);
-  }
-
-  def check() : SolverResult = {
-    if(!alreadyChecked && exitValue() != SUCCESS) {
-      alreadyChecked = true;
-      ERROR;
-    }
-    else {
-      alreadyChecked = true;
-      result;
-    }
-  }
+  override def check() : SolverResult = computeOrRetrieve(result, ERROR);
 
 }
 

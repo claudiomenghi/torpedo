@@ -17,8 +17,6 @@
   */
 package thrive.solver
 
-import java.io.InputStream
-
 import thrive.insights.{Clause, Insight}
 import thrive.ltl._
 
@@ -72,8 +70,6 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
       insights.get(formula);
     }
   }
-
-  override protected def processError(inputStream: InputStream) : Unit = {}
 
 }
 

@@ -17,21 +17,56 @@
   */
 package thrive.utilities
 
-import java.io.{InputStream, OutputStream}
+import java.io.{InputStream, OutputStream, OutputStreamWriter}
 
+import scala.io.Source
 import scala.sys.process.{Process, ProcessIO}
 
-abstract class ProcessHandler {
+abstract class ProcessHandler(logFilename : Option[String]) {
+
+  private var alreadyComputed = false;
+
+  protected val SUCCESS = 0;
 
   protected def command : String;
 
-  protected def processInput(outputStream : OutputStream) : Unit;
-  protected def processOutput(inputStream: InputStream) : Unit;
-  protected def processError(inputStream: InputStream) : Unit;
+  protected def input : Seq[String];
+
+  protected def processLine(line : String) : Unit;
+
+  private def processOutput(inputStream: InputStream) : Unit = {
+    val lines = Source.fromInputStream(inputStream).getLines.toSeq;
+    lines.foreach(processLine);
+    logFilename.foreach(Writer.write(_, lines));
+    inputStream.close();
+  }
+
+  private def processError(inputStream: InputStream) : Unit = {
+    inputStream.close();
+  }
+
+  private def processInput(outputStream : OutputStream) : Unit = {
+    val writer = new OutputStreamWriter(outputStream);
+    input.foreach(writer.write);
+    writer.close();
+  }
 
   private val process = Process(command);
   private val io = new ProcessIO(processInput, processOutput, processError);
 
   protected def exitValue() : Int = process.run(io).exitValue();
+
+  protected def computeOrRetrieve[T](result : => T, failure : T) : T = {
+    if(!alreadyComputed && exitValue() != SUCCESS) {
+      alreadyComputed = true;
+      failure;
+    }
+    else {
+      alreadyComputed = true;
+      result;
+    }
+  }
+
+
 
 }
