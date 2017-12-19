@@ -29,4 +29,8 @@ abstract class Literal extends LtlFormula(0) {
 
   def isPositive : Boolean;
 
+  def complementClosed : AugmentedAtomicFormula;
+
+  override def toNNF : Literal = this;
+
 }

@@ -56,7 +56,7 @@ case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) 
   }
 
   private def ltlSpecification(property : LtlFormula) : Seq[String] =
-    Seq("LTLSPEC", "\t" + property.complementClosed(useBefore = false).toSMV);
+    Seq("LTLSPEC", "\t" + property.toNNF.complementClosed.toSMV);
 
   private def toSVM(property: LtlFormula, f : AtomicFormula => Literal) =
     "MODULE main" +: (variables ++ assign(f) ++ ltlSpecification(property)).map("\t" + _);

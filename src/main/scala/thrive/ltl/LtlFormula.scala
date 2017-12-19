@@ -37,7 +37,7 @@ abstract class LtlFormula(protected val priority : Int) {
 
   def toNNF : LtlFormula;
 
-  def complementClosed(useBefore : Boolean) : LtlFormula;
+  def complementClosed : LtlFormula;
 
   def enclose(f : LtlFormula => String, nextPriority : Int) : String =
     if(nextPriority < priority)
@@ -60,6 +60,8 @@ case class Negation(formula: LtlFormula) extends LtlFormula(0){
 
   override def toSMV : String = "!(" + formula.toSMV + ")";
 
+  override def complementClosed : LtlFormula = throw new IllegalArgumentException("Formula not in NNF!");
+
   override def toNNF : LtlFormula =
     formula match {
       case Conjunction(formulae) => Disjunction(formulae.map(!_)).toNNF;
@@ -71,23 +73,6 @@ case class Negation(formula: LtlFormula) extends LtlFormula(0){
       case X(f) => X(!f).toNNF;
       case G(f) => F(!f).toNNF;
       case F(f) => G(!f).toNNF;
-      case True => False;
-      case False => True;
-    }
-
-
-  override def complementClosed(useBefore : Boolean) : LtlFormula =
-    formula match {
-      case Conjunction(formulae) => Disjunction(formulae.map(!_)).complementClosed(useBefore);
-      case Disjunction(formulae) => Conjunction(formulae.map(!_)).complementClosed(useBefore);
-      case Implication(lhs, rhs) => (lhs & !rhs).complementClosed(useBefore);
-      case Before(lhs, rhs) => Until(!lhs, rhs).complementClosed(useBefore);
-      case Release(lhs, rhs) => Until(!lhs, !rhs).complementClosed(useBefore);
-      case Until(lhs, rhs) if useBefore => Before(!lhs, rhs).complementClosed(useBefore);
-      case Until(lhs, rhs) => Release(!lhs, !rhs).complementClosed(useBefore);
-      case X(f) => X(!f).complementClosed(useBefore);
-      case G(f) => F(!f).complementClosed(useBefore);
-      case F(f) => G(!f).complementClosed(useBefore);
       case True => False;
       case False => True;
     }
@@ -106,6 +91,8 @@ case class Conjunction(formulae : Seq[LtlFormula]) extends LtlFormula(10){
 
   override def toNNF : LtlFormula = Conjunction(formulae.map(_.toNNF));
 
+  override def complementClosed : LtlFormula = Conjunction(formulae.map(_.complementClosed));
+
   override def equals(o: scala.Any): Boolean =
     o match {
       case Conjunction(f) => formulae.toSet == f.toSet;
@@ -120,9 +107,6 @@ case class Conjunction(formulae : Seq[LtlFormula]) extends LtlFormula(10){
       case 1 => formulae.head;
       case _ => this;
     }
-
-  override def complementClosed(useBefore : Boolean) : LtlFormula =
-    Conjunction(formulae.map(_.complementClosed(useBefore)));
 
 }
 
@@ -146,15 +130,14 @@ case class Disjunction(formulae : Seq[LtlFormula]) extends LtlFormula(11){
 
   override def toNNF : LtlFormula = Disjunction(formulae.map(_.toNNF));
 
+  override def complementClosed : LtlFormula = Disjunction(formulae.map(_.complementClosed));
+
   def simplify : LtlFormula =
     formulae.size match {
       case 0 => False;
       case 1 => formulae.head;
       case _ => this;
     }
-
-  override def complementClosed(useBefore : Boolean) : LtlFormula =
-    Disjunction(formulae.map(_.complementClosed(useBefore)));
 
 }
 
@@ -168,8 +151,8 @@ case class Implication(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(12
 
   override def toNNF : LtlFormula = (!lhs).toNNF | rhs.toNNF;
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula =
-    (!lhs).complementClosed(useBefore) | rhs.complementClosed(useBefore);
+  override def complementClosed : LtlFormula = throw new IllegalArgumentException("Formula not in NNF!");
+
 }
 
 case class Before(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
@@ -182,11 +165,8 @@ case class Before(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
 
   override def toNNF : LtlFormula = Release(lhs, !rhs).toNNF;
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula =
-    if(useBefore)
-      Before(lhs.complementClosed(useBefore), rhs.complementClosed(useBefore));
-    else
-      Release(lhs.complementClosed(useBefore), (!rhs).complementClosed(useBefore));
+  override def complementClosed : LtlFormula = throw new IllegalArgumentException("Formula not in NNF!");
+
 }
 
 case class Release(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
@@ -199,11 +179,8 @@ case class Release(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
 
   override def toNNF : LtlFormula = Release(lhs.toNNF, rhs.toNNF);
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula =
-    if(useBefore)
-      Before(lhs.complementClosed(useBefore), (!rhs).complementClosed(useBefore));
-    else
-      Release(lhs.complementClosed(useBefore), rhs.complementClosed(useBefore));
+  override def complementClosed : LtlFormula = Release(lhs.complementClosed, rhs.complementClosed);
+
 }
 
 case class Until(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
@@ -216,8 +193,8 @@ case class Until(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
 
   override def toNNF : LtlFormula = Until(lhs.toNNF, rhs.toNNF);
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula =
-    Until(lhs.complementClosed(useBefore), rhs.complementClosed(useBefore));
+  override def complementClosed : LtlFormula = Until(lhs.complementClosed, rhs.complementClosed);
+
 }
 
 case class X(formula: LtlFormula) extends LtlFormula(0){
@@ -230,7 +207,8 @@ case class X(formula: LtlFormula) extends LtlFormula(0){
 
   override def toNNF : LtlFormula = X(formula.toNNF);
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula = X(formula.complementClosed(useBefore));
+  override def complementClosed : LtlFormula = X(formula.complementClosed);
+
 }
 
 case class G(formula: LtlFormula) extends LtlFormula(0){
@@ -243,7 +221,8 @@ case class G(formula: LtlFormula) extends LtlFormula(0){
 
   override def toNNF : LtlFormula = Release(False, formula).toNNF;
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula = G(formula.complementClosed(useBefore));
+  override def complementClosed : LtlFormula = throw new IllegalArgumentException("Formula not in NNF!");
+
 }
 
 case class F(formula: LtlFormula) extends LtlFormula(0){
@@ -256,7 +235,8 @@ case class F(formula: LtlFormula) extends LtlFormula(0){
 
   override def toNNF : LtlFormula = Until(True, formula).toNNF;
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula = F(formula.complementClosed(useBefore));
+  override def complementClosed : LtlFormula = throw new IllegalArgumentException("Formula not in NNF!");
+
 }
 
 case object True extends LtlFormula(0){
@@ -269,7 +249,8 @@ case object True extends LtlFormula(0){
 
   override def toNNF : LtlFormula = this;
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula = this;
+  override def complementClosed : LtlFormula = this;
+
 }
 
 case object False extends LtlFormula(0){
@@ -282,5 +263,6 @@ case object False extends LtlFormula(0){
 
   override def toNNF : LtlFormula = this;
 
-  override def complementClosed(useBefore : Boolean) : LtlFormula = this;
+  override def complementClosed : LtlFormula = this;
+
 }

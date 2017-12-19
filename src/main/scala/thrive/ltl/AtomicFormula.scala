@@ -39,7 +39,7 @@ sealed abstract class AtomicFormula extends Literal {
 
   override def complementClosure : Set[Literal] = Set(positive, !negative);
 
-  override def complementClosed(useBefore : Boolean) : AugmentedAtomicFormula = positive;
+  override def complementClosed : AugmentedAtomicFormula = positive;
 
   override def original: Literal = this;
 
@@ -55,7 +55,7 @@ case class AugmentedAtomicFormula(id : String, value : Boolean) extends AtomicFo
 
   override def toSMV : String = id + (if(value) "_p" else "_n");
 
-  override def complementClosed(useBefore : Boolean) : AugmentedAtomicFormula = this;
+  override def complementClosed : AugmentedAtomicFormula = this;
 
   override def original: Literal =
     if(value) Atom(id);

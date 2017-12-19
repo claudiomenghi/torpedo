@@ -59,7 +59,7 @@ case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause](pks) 
       fastStatePredicate(f);
 
   private def transformProperty(property : LtlFormula) : Clause =
-    Clause(!property.complementClosed(useBefore = true), Property);
+    Clause(!property.toNNF.complementClosed, Property);
 
   override def optimistic(property : LtlFormula) : Seq[Clause] =
     distinct ++ transitionPredicate ++ statePredicate(a => a) ++ Seq(initialPredicate, transformProperty(property));

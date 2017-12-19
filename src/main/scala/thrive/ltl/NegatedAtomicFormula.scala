@@ -31,7 +31,7 @@ case class NegatedAtomicFormula(atom : AtomicFormula) extends Literal {
 
   override def complementClosure : Set[Literal] = atom.complementClosure.map(!_);
 
-  override def complementClosed(useBefore : Boolean) : AugmentedAtomicFormula = atom.negative;
+  override def complementClosed : AugmentedAtomicFormula = atom.negative;
 
   override def original: Literal = !atom.original;
 
