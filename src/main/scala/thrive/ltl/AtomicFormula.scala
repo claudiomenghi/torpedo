@@ -17,11 +17,13 @@
   */
 package thrive.ltl
 
-case class AtomicFormula(id : String) extends Literal {
+sealed abstract class AtomicFormula extends Literal {
 
-  def positive : AugmentedAtomicFormula = new AugmentedAtomicFormula(id, true);
+  def id : String;
 
-  def negative : AugmentedAtomicFormula = new AugmentedAtomicFormula(id, false);
+  def positive : AugmentedAtomicFormula = AugmentedAtomicFormula(id, value = true);
+
+  def negative : AugmentedAtomicFormula = AugmentedAtomicFormula(id, value = false);
 
   def toXML(value : String) : String = "<attr type='prop' name='" + id + "' value='" + value + "'/>";
 
@@ -45,7 +47,7 @@ case class AtomicFormula(id : String) extends Literal {
 
 }
 
-class AugmentedAtomicFormula(id : String, value : Boolean) extends AtomicFormula(id) {
+case class AugmentedAtomicFormula(id : String, value : Boolean) extends AtomicFormula {
 
   override def toPLTLMup : String = id + (if(value) "_p" else "_n");
 
@@ -56,13 +58,17 @@ class AugmentedAtomicFormula(id : String, value : Boolean) extends AtomicFormula
   override def complementClosed(useBefore : Boolean) : AugmentedAtomicFormula = this;
 
   override def original: Literal =
-    if(value) AtomicFormula(id);
-    else !AtomicFormula(id);
+    if(value) Atom(id);
+    else !Atom(id);
 
 }
 
+case class Atom(id : String) extends AtomicFormula;
+
 object AtomicFormula {
 
-  def apply(symbol: Symbol) : AtomicFormula = AtomicFormula(symbol.name);
+  def apply(symbol: Symbol) : AtomicFormula = Atom(symbol.name);
+
+  def apply(id: String) : AtomicFormula = Atom(id);
 
 }
