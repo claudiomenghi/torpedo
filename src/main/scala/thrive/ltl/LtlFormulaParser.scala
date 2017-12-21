@@ -35,11 +35,12 @@ object LtlFormulaParser extends RegexParsers {
     not("X[A-Za-z0-9_]".r) ~ "X" ~> unary.^^(X) |
     not("F[A-Za-z0-9_]".r) ~ "F" ~> unary.^^(F) |
     not("G[A-Za-z0-9_]".r) ~ "G" ~> unary.^^(G) |
-    "~" ~> unary.^^(!_) | atom;
+    ("~"|"!") ~> unary.^^(!_) | atom;
 
   private val temporal : Parser[LtlFormula] =
     ((unary <~ not("B[A-Za-z0-9_]".r) ~ "B") ~ temporal).^^(x => Before(x._1, x._2)) |
     ((unary <~ not("U[A-Za-z0-9_]".r) ~ "U") ~ temporal).^^(x => Until(x._1, x._2))  |
+    ((unary <~ not("W[A-Za-z0-9_]".r) ~ "W") ~ temporal).^^(x => G(x._1) | Until(x._1, x._2))  |
       unary;
 
   private val conjunction : Parser[LtlFormula] = repsep(temporal, "&").^^(Conjunction(_).simplify);
