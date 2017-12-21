@@ -26,7 +26,7 @@
 		</node>
 		
 		<node ID='other'>
-			<attr type='prop' name='CONNECTED' value='F'/>
+			<attr type='prop' name='CONNECTED' value='M'/>
 			<attr type='prop' name='ACTIVE' value='F'/>
 			<attr type='prop' name='OFFHOOK' value='M'/>
 		</node>
@@ -76,14 +76,6 @@
 		</edge>
 		
 		<edge from='connected' to='other'>
-			<attr name='weight' value='T'/>
-		</edge>
-		
-		<edge from='other' to='dialtone'>
-			<attr name='weight' value='T'/>
-		</edge>
-		
-		<edge from='dialtone' to='other'>
 			<attr name='weight' value='T'/>
 		</edge>
 		
