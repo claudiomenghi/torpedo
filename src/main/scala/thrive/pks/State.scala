@@ -19,9 +19,9 @@ package thrive.pks
 
 import thrive.ltl._
 
-case class State(name : String, isInitial : Boolean, literals : Seq[Literal]) {
+case class State(name : String, isInitial : Boolean, literals : Seq[Literal], maybe : Set[AtomicFormula]) {
 
-  def atomicFormulae : Set[AtomicFormula] = literals.map(_.atomicFormula).toSet;
+  def atomicFormulae : Set[AtomicFormula] = literals.map(_.atomicFormula).toSet ++ maybe;
 
   def ->(next : State) : Transition = Transition(this, next);
 
@@ -54,8 +54,8 @@ case class State(name : String, isInitial : Boolean, literals : Seq[Literal]) {
 
 object State{
 
-  def apply(id : Symbol, isInitial : Boolean, atoms : Literal*) : State = State(id.name, isInitial, atoms);
+  def apply(id : Symbol, isInitial : Boolean, atoms : Literal*) : State = new State(id.name, isInitial, atoms, Set());
 
-  def apply(id : Symbol, atoms : Literal*) : State = State(id.name, isInitial = false, atoms);
+  def apply(id : Symbol, atoms : Literal*) : State = new State(id.name, isInitial = false, atoms, Set());
 
 }

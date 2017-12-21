@@ -103,6 +103,15 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
 
 object PartialKripkeStructure {
 
+  private def extractMaybe(node : Node) : Option[AtomicFormula] = {
+    val name = node.attributes.asAttrMap("name");
+    val value = node.attributes.asAttrMap("value");
+    value match {
+      case "M" => Some(AtomicFormula(name));
+      case _ => None;
+    }
+  }
+
   private def extractLiteral(node : Node) : Option[Literal] = {
     val name = node.attributes.asAttrMap("name");
     val value = node.attributes.asAttrMap("value");
@@ -119,7 +128,8 @@ object PartialKripkeStructure {
     val isInitial = node.attributes.asAttrMap.get("xbel:initial").exists(_.toLowerCase == "true");
     val name = node.attributes.asAttrMap("ID");
     val literals = (node \ "attr").flatMap(extractLiteral);
-    State(name, isInitial, literals);
+    val maybe = (node \ "attr").flatMap(extractMaybe);
+    State(name, isInitial, literals, maybe.toSet);
   }
 
   private def extractTransition(states : Seq[State])(node : Node) : Transition = {
