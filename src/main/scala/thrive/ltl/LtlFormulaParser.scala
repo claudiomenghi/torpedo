@@ -27,7 +27,7 @@ object LtlFormulaParser extends RegexParsers {
     (not("True[A-Za-z0-9_]".r) ~> "True").^^(_ => True) |
     (not("False[A-Za-z0-9_]".r) ~> "False").^^(_ => False);
 
-  private lazy val expression : Parser[LtlFormula] = implication;
+  private lazy val expression : Parser[LtlFormula] = equivalence;
 
   private val atom : Parser[LtlFormula] = "(" ~> expression <~ ")" | constant | literal;
 
@@ -47,7 +47,10 @@ object LtlFormulaParser extends RegexParsers {
 
   private val disjunction : Parser[LtlFormula] = repsep(conjunction, "|").^^(Disjunction(_).simplify);
 
-  private val implication : Parser[LtlFormula] = repsep(disjunction, "->").^^(_.reduceLeft((x,y) => x -> y));
+  private val implication : Parser[LtlFormula] = repsep(disjunction, "->"|"=>").^^(_.reduceLeft((x,y) => x -> y));
+
+  private val equivalence : Parser[LtlFormula] = repsep(implication, "<->"|"="|"<==>"|"<=>").^^(
+    _.reduceLeft((x,y) => !x & !y | x & y));
 
   def parse(line : String) : LtlFormula = parseAll(expression, line).get;
 
