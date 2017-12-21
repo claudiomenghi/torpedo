@@ -1,0 +1,81 @@
+<gxl xmlns:xbel='www.cs.toronto.edu/xbel' xmlns:xlink='xlink'>
+	<graph ID='AC' edgemode='directed'>
+
+		<node ID='OFF' xbel:initial='true'>
+			<attr type='prop' name='running' value='F'/>
+			<attr type='prop' name='air' value='F'/>
+			<attr type='prop' name='idle1' value='F'/>
+			<attr type='prop' name='above' value='F'/>
+		</node>
+		
+		<node ID='IDLE1'>
+			<attr type='prop' name='running' value='T'/>
+			<attr type='prop' name='air' value='F'/>
+			<attr type='prop' name='idle1' value='T'/>
+			<attr type='prop' name='above' value='T'/>
+		</node>
+		
+		<node ID='IDLE2'>
+			<attr type='prop' name='running' value='T'/>
+			<attr type='prop' name='above' value='F'/>
+			<attr type='prop' name='air' value='F'/>
+			<attr type='prop' name='idle1' value='F'/>
+		</node>
+		
+		<node ID='AC'>
+			<attr type='prop' name='running' value='T'/>
+			<attr type='prop' name='above' value='T'/>
+			<attr type='prop' name='air' value='T'/>
+			<attr type='prop' name='idle1' value='F'/>
+		</node>
+		
+		<edge from='OFF' to='OFF'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='OFF' to='IDLE1'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE1' to='OFF'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE1' to='IDLE2'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE1' to='IDLE1'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE1' to='AC'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE2' to='IDLE2'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE2' to='IDLE1'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE2' to='AC'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='AC' to='AC'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='AC' to='IDLE1'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='AC' to='IDLE2'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+	</graph>
+</gxl>
