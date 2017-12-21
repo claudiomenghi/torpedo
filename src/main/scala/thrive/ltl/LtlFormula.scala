@@ -64,6 +64,7 @@ case class Negation(formula: LtlFormula) extends LtlFormula(0){
 
   override def toNNF : LtlFormula =
     formula match {
+      case Negation(f) => f.toNNF;
       case Conjunction(formulae) => Disjunction(formulae.map(!_)).toNNF;
       case Disjunction(formulae) => Conjunction(formulae.map(!_)).toNNF;
       case Implication(lhs, rhs) => (lhs & !rhs).toNNF;
@@ -173,7 +174,7 @@ case class Release(lhs : LtlFormula, rhs : LtlFormula) extends LtlFormula(5){
 
   override def toPLTLMup : String = Before(lhs, !rhs).toPLTLMup;
 
-  override def toTRP : String = (!Until(!lhs, rhs)).toTRP;
+  override def toTRP : String = (!Until(!lhs, !rhs)).toTRP;
 
   override def toSMV : String = "(" + lhs.toSMV + ") V (" + rhs.toSMV + ")";
 
