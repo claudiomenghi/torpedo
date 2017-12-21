@@ -59,6 +59,7 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
       case NegatedAtomicFormula(atom) => !normalized(atom);
       case a : AugmentedAtomicFormula => AtomicFormula(a.toPLTLMup);
       case a : AtomicFormula => a;
+      case _ => formula;
     }
 
   override protected def extractInsight(line : String) : Option[Insight] = {
