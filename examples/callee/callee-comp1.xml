@@ -8,9 +8,9 @@
 		</node>
 		
 		<node ID='connected'>
-			<attr type='prop' name='OFFHOOK' value='T'/>
-			<attr type='prop' name='CONNECTED' value='T'/>
-			<attr type='prop' name='ACTIVE' value='T'/>
+			<attr type='prop' name='OFFHOOK' value='M'/>
+			<attr type='prop' name='CONNECTED' value='M'/>
+			<attr type='prop' name='ACTIVE' value='M'/>
 		</node>
 		
 		<node ID='dialtone'>
@@ -20,9 +20,9 @@
 		</node>
 		
 		<node ID='ringing'>
-			<attr type='prop' name='OFFHOOK' value='F'/>
-			<attr type='prop' name='CONNECTED' value='T'/>
-			<attr type='prop' name='ACTIVE' value='T'/>
+			<attr type='prop' name='OFFHOOK' value='M'/>
+			<attr type='prop' name='CONNECTED' value='M'/>
+			<attr type='prop' name='ACTIVE' value='M'/>
 		</node>
 		
 		<node ID='other'>

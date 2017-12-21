@@ -27,8 +27,8 @@
 		
 		<node ID='other'>
 			<attr type='prop' name='ACTIVE' value='F'/>
-			<attr type='prop' name='OFFHOOK' value='M'/>
-			<attr type='prop' name='CONNECTED' value='M'/>
+			<attr type='prop' name='OFFHOOK' value='T'/>
+			<attr type='prop' name='CONNECTED' value='T'/>
 		</node>
 		
 		<edge from='idle' to='ringing'>

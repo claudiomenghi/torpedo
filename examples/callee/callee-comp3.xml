@@ -4,21 +4,31 @@
 		<node ID='idle' xbel:initial='true'>
 			<attr type='prop' name='OFFHOOK' value='F'/>
 			<attr type='prop' name='CONNECTED' value='F'/>
+			<attr type='prop' name='ACTIVE' value='T'/>
 		</node>
 		
 		<node ID='connected'>
 			<attr type='prop' name='OFFHOOK' value='T'/>
 			<attr type='prop' name='CONNECTED' value='T'/>
+			<attr type='prop' name='ACTIVE' value='T'/>
 		</node>
 		
 		<node ID='dialtone'>
 			<attr type='prop' name='OFFHOOK' value='T'/>
 			<attr type='prop' name='CONNECTED' value='F'/>
+			<attr type='prop' name='ACTIVE' value='T'/>
 		</node>
 		
 		<node ID='ringing'>
 			<attr type='prop' name='OFFHOOK' value='F'/>
 			<attr type='prop' name='CONNECTED' value='T'/>
+			<attr type='prop' name='ACTIVE' value='T'/>
+		</node>
+		
+		<node ID='other'>
+			<attr type='prop' name='CONNECTED' value='F'/>
+			<attr type='prop' name='ACTIVE' value='F'/>
+			<attr type='prop' name='OFFHOOK' value='M'/>
 		</node>
 		
 		<edge from='idle' to='ringing'>
@@ -58,6 +68,34 @@
 		</edge>
 		
 		<edge from='connected' to='connected'>
+			<attr name='weight' value='T'/>
+		</edge>
+
+		<edge from='other' to='connected'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='connected' to='other'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='other' to='dialtone'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='dialtone' to='other'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='other' to='idle'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='idle' to='other'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='other' to='other'>
 			<attr name='weight' value='T'/>
 		</edge>
 		
