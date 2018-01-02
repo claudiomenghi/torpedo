@@ -1,0 +1,69 @@
+<gxl xmlns:xbel='www.cs.toronto.edu/xbel' xmlns:xlink='xlink'>
+	<graph ID='vacuum-cleaner' edgemode='directed'>
+
+		<node ID='OFF' xbel:initial='true'>
+			<attr type='prop' name='move' value='F'/>
+			<attr type='prop' name='suck' value='F'/>
+			<attr type='prop' name='on' value='F'/>
+			<attr type='prop' name='reached' value='F'/>
+		</node>
+		
+		<node ID='IDLE'>
+			<attr type='prop' name='move' value='F'/>
+			<attr type='prop' name='suck' value='F'/>
+			<attr type='prop' name='on' value='T'/>
+			<attr type='prop' name='reached' value='M'/>
+		</node>
+		
+		<node ID='MOVING'>
+			<attr type='prop' name='move' value='T'/>
+			<attr type='prop' name='on' value='T'/>
+			<attr type='prop' name='suck' value='M'/>
+			<attr type='prop' name='reached' value='M'/>
+		</node>
+		
+		<node ID='CLEANING'>
+			<attr type='prop' name='suck' value='T'/>
+			<attr type='prop' name='on' value='T'/>
+			<attr type='prop' name='reached' value='T'/>
+			<attr type='prop' name='move' value='M'/>
+		</node>
+		
+		<edge from='OFF' to='OFF'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='OFF' to='IDLE'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE' to='OFF'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE' to='IDLE'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='IDLE' to='MOVING'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='MOVING' to='MOVING'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='MOVING' to='CLEANING'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='CLEANING' to='CLEANING'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+		<edge from='CLEANING' to='IDLE'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+	</graph>
+</gxl>
