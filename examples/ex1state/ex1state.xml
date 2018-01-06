@@ -1,0 +1,13 @@
+<gxl xmlns:xbel='www.cs.toronto.edu/xbel' xmlns:xlink='xlink'>
+	<graph ID='es1' edgemode='directed'>
+
+		<node ID='OFF' xbel:initial='true'>
+			<attr type='prop' name='a' value='M'/>
+		</node>
+
+		<edge from='OFF' to='OFF'>
+			<attr name='weight' value='T'/>
+		</edge>
+		
+	</graph>
+</gxl>
