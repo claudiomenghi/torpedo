@@ -24,7 +24,7 @@ import thrive.pks.{PartialKripkeStructure, State, Trace}
 case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) {
 
   private def stateSequence(states : Seq[State]) =
-    if(states.size == 1)
+    if(states.lengthCompare(1) == 0)
       p(states.head).id;
     else
       states.map(p(_).id).mkString("{", ", ", "}");
@@ -47,7 +47,7 @@ case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) 
   private def assign(f : AtomicFormula => Literal) : Seq[String] = {
     val initialState = "init(state) := " + stateSequence(initialStates.toSeq) + ";";
     val nextState = "next(state) := case" +: pks.states.map(stateTransition).map("\t" + _) :+ "\tesac;";
-    val states = initialState +: nextState;
+    val states = if(pks.states.lengthCompare(1) > 0) initialState +: nextState; else Seq[String]();
 
     val propositionState = pks.states.flatMap(stateAtomicFormulae(_, f)).groupBy(_._1).map(x => x._1 -> x._2.map(_._2));
     val propositions = propositionState.map(y => y._1 + " := state in " + y._2.mkString("{", ", ", "}") + ";");
