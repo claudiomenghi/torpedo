@@ -27,7 +27,7 @@ case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause](pks) 
   private def distinct : Seq[Clause] = {
     val sp = p.values.toArray;
     val c = Array.range(0, sp.length - 1).map(i => sp(i) -> !Disjunction(Array.range(i+1, sp.length).map(sp)).simplify);
-    (c :+ Disjunction(sp)).map(G).map(Clause(_, PKSConstraint));
+    c.map(G).map(Clause(_, PKSConstraint));
   }
 
   private def transitionPredicate(from : State, to : Seq[State]) = G(p(from) -> X(Disjunction(to.map(p)).simplify));
