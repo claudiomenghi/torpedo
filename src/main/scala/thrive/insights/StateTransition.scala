@@ -29,4 +29,6 @@ case class StateTransition(state : State, next : Seq[State]) extends Insight {
 
   override def explain : Option[String] = Some(state.name + " -> " + nextStates);
 
+  override def computeSlice(slicer: Slicer): Unit = slicer.keepTransition(state, next);
+
 }

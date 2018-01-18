@@ -28,4 +28,6 @@ case class StatePredicate(state : State, literals : Set[Literal], override val d
 
   override def explain : Option[String] = Some(literalText + " (" + state.name + ")");
 
+  override def computeSlice(slicer: Slicer): Unit = slicer.keepProposition(state, literals);
+
 }

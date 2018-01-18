@@ -20,7 +20,7 @@ package thrive.pks
 import java.io.FileNotFoundException
 
 import org.xml.sax.SAXParseException
-import thrive.insights.Clause
+import thrive.insights.{Clause, Insight, Slicer}
 import thrive.ltl._
 import thrive.mc._
 import thrive.pks.encoders.{LTLEncoder, SMVEncoder}
@@ -31,27 +31,31 @@ import scala.xml.{Node, XML}
 
 case class PartialKripkeStructure(name : String, states : List[State], transitions : List[Transition]) {
 
-  require(states.forall(s => transitions.exists(_.from == s)), "There is a state without outgoing transitions!");
-
   private[pks] val atomicFormulae : Set[AtomicFormula] = states.flatMap(_.atomicFormulae).toSet;
 
   private def writeInputFile(input : Seq[String], filename : String) : Unit = Writer.write(filename, input);
 
-  def writeOutput(result : ModelCheckerResult, property : LtlFormula, solver : Solver,
-                  inputPrefix : Option[String], logPrefix : Option[String], output : String) : Unit = {
-
-    def writeInsights(model : Seq[Clause]) : Unit = {
+  private def proveProperty(result : ModelCheckerResult, property : LtlFormula, solver : Solver,
+                            inputPrefix : Option[String], logPrefix : Option[String]) : Seq[Insight] = {
+    def retrieveInsights(model : Seq[Clause]) : Seq[Insight] = {
       val solverInstance = solver.create(model, logPrefix.map(_ + "_solver.log"));
       inputPrefix.foreach(prefix => writeInputFile(solverInstance.input, prefix + "_solver.in"));
       solverInstance.check();
-      Writer.write(output, solverInstance.insights.flatMap(_.explain));
+      solverInstance.insights;
     }
 
     result match {
-      case SATISFIED => writeInsights(LTLEncoder(this).pessimistic(property));
-      case POSSIBLY_SATISFIED => writeInsights(LTLEncoder(this).optimistic(property));
-      case _ =>
+      case SATISFIED => retrieveInsights(LTLEncoder(this).pessimistic(property));
+      case POSSIBLY_SATISFIED => retrieveInsights(LTLEncoder(this).optimistic(property));
+      case _ => Seq();
     }
+  }
+
+  private def buildSlice(insights : Seq[Insight], outputFilename : String) : Unit = {
+    val slicer = new Slicer(this);
+    insights.foreach(_.computeSlice(slicer));
+    val pks = slicer.slice();
+    pks.writeXML(outputFilename);
   }
 
   private def checkProperty(mc : ModelChecker, property : LtlFormula, inputPrefix : Option[String],
@@ -82,9 +86,11 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
 
   def check(solver : Solver, mc : ModelChecker, property : LtlFormula,
             inputPrefix : Option[String], logPrefix : Option[String],
-            traceFilename : Option[String], output : Option[String]) : ModelCheckerResult = {
+            traceFilename : Option[String], output : Option[String], slice : Option[String]) : ModelCheckerResult = {
     val result = checkProperty(mc, property, inputPrefix, logPrefix, traceFilename);
-    output.foreach(writeOutput(result, property, solver, inputPrefix, logPrefix, _));
+    lazy val insights = proveProperty(result, property, solver, inputPrefix, logPrefix);
+    output.foreach(Writer.write(_, insights.flatMap(_.explain)));
+    slice.foreach(buildSlice(insights, _));
     result;
   }
 
@@ -143,12 +149,15 @@ object PartialKripkeStructure {
   private def extractGraph(node : Node) : Option[PartialKripkeStructure] = {
     val states = (node \ "node").map(extractNode);
     val transitions = (node \ "edge").map(extractTransition(states));
-    try {
-      Some(PartialKripkeStructure(node.attributes.asAttrMap("ID"), states.toList, transitions.toList));
-    }
-    catch {
-      case _ : SAXParseException => None;
-    }
+    if(!states.forall(s => transitions.exists(_.from == s)))
+      None;
+    else
+      try {
+        Some(PartialKripkeStructure(node.attributes.asAttrMap("ID"), states.toList, transitions.toList));
+      }
+      catch {
+        case _ : SAXParseException => None;
+      }
   }
 
   def apply(filename : String) : Seq[PartialKripkeStructure] = {

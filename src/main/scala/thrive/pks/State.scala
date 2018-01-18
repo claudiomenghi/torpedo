@@ -21,6 +21,11 @@ import thrive.ltl._
 
 case class State(name : String, isInitial : Boolean, literals : Seq[Literal], maybe : Set[AtomicFormula]) {
 
+  def clearInitial : State = State(name, isInitial = false, literals, maybe);
+
+  def restrict(restriction : Set[Literal]) =
+    State(name, isInitial, literals.filter(restriction.contains), maybe intersect restriction.map(_.atomicFormula));
+
   def atomicFormulae : Set[AtomicFormula] = literals.map(_.atomicFormula).toSet ++ maybe;
 
   def ->(next : State) : Transition = Transition(this, next);

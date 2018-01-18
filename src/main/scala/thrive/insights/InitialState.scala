@@ -22,9 +22,11 @@ import thrive.pks.State
 case class InitialState(states : Seq[State]) extends Insight {
 
   private def text : String =
-    if(states.size == 1) " is the initial state";
+    if(states.lengthCompare(1) == 0) " is the initial state";
     else " are initial states";
 
   override def explain : Option[String] = Some(states.map(_.name).mkString(", ") + text);
+
+  override def computeSlice(slicer: Slicer): Unit = slicer.keepInitialStates();
 
 }

@@ -43,8 +43,11 @@ object Main {
       println("Input/output error on PKS!");
     else if(property.isEmpty)
       println("Input/output error on property!");
-    else
-      println(ks.head.check(opt.solver, opt.modelChecker, property.get, opt.input, opt.log, opt.trace, opt.output));
+    else {
+      val result =
+        ks.head.check(opt.solver, opt.modelChecker, property.get, opt.input, opt.log, opt.trace, opt.output, opt.slice);
+      println(result);
+    }
   }
 
   def main(args: Array[String]): Unit = {

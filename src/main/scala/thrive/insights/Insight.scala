@@ -19,6 +19,8 @@ package thrive.insights
 
 trait Insight {
 
+  def computeSlice(slicer : Slicer) : Unit = {};
+
   def explain : Option[String] = None;
 
   def dependOnMaybe : Boolean = false;
