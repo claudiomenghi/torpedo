@@ -50,15 +50,45 @@ object Main {
     }
   }
 
-  def main(args: Array[String]): Unit = {
+  def check(args: Array[String]): Unit = {
     if(args.length < 2){
-      println("Usage: thrive [options] <PKS XML file> <property file>");
+      println("Usage: thrive check [options] <PKS XML file> <property file>");
     }
     else{
       val files = args.takeRight(2);
       val options = DefaultOptions;
       if(options.processCommandLineArguments(args.dropRight(2).toList))
         checkProperty(files.head, files(1), options);
+    }
+  }
+
+  def recheck(args: Array[String]): Unit = {
+    if(args.length != 2){
+      println("Usage: thrive recheck <PKS XML file> <Slice XML file>");
+    }
+    else{
+      val pks = PartialKripkeStructure(args(0));
+      val slice = PartialKripkeStructure(args(1));
+      if(pks.isEmpty || slice.isEmpty){
+        println("Error encountered!");
+      }
+      else if (pks.head.recheckNeeded(slice.head)){
+        println("Recheck needed!");
+      }
+      else {
+        println("Recheck not needed!");
+      }
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+    if(args.length < 1){
+      println("Usage: thrive <command> [options]");
+    }
+    args.head match {
+      case "check" => check(args.tail);
+      case "recheck" => recheck(args.tail);
+      case _ => println("Command not recognized!");
     }
   }
 

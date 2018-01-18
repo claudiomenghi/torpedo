@@ -84,6 +84,28 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
     }
   }
 
+  private val transitionMap : Map[String, List[String]] =
+    transitions.groupBy(_.from).map(x => x._1.name -> x._2.map(_.to.name));
+
+  private def checkPredicates(slice : PartialKripkeStructure) : Boolean = {
+    val requiredPredicates = slice.states.map(x => (x.name, x.literals.toSet, x.maybe));
+    val predicateMap = states.map(s => s.name -> (s.literals.toSet, s.maybe)).toMap;
+    requiredPredicates.forall( t =>
+      predicateMap.contains(t._1) && t._2.subsetOf(predicateMap(t._1)._1) && t._3.subsetOf(predicateMap(t._1)._2));
+  }
+
+  def recheckNeeded(slice : PartialKripkeStructure) : Boolean = {
+    val sliceInitial = slice.states.filter(_.isInitial);
+    if(sliceInitial.nonEmpty && sliceInitial.map(_.name).toSet != states.filter(_.isInitial).map(_.name).toSet)
+      true;
+    else if (!slice.transitionMap.forall(pair => transitionMap(pair._1) == pair._2))
+      true;
+    else if (!checkPredicates(slice))
+      true;
+    else
+      false;
+  }
+
   def check(solver : Solver, mc : ModelChecker, property : LtlFormula,
             inputPrefix : Option[String], logPrefix : Option[String],
             traceFilename : Option[String], output : Option[String], slice : Option[String]) : ModelCheckerResult = {
@@ -149,15 +171,12 @@ object PartialKripkeStructure {
   private def extractGraph(node : Node) : Option[PartialKripkeStructure] = {
     val states = (node \ "node").map(extractNode);
     val transitions = (node \ "edge").map(extractTransition(states));
-    if(!states.forall(s => transitions.exists(_.from == s)))
-      None;
-    else
-      try {
-        Some(PartialKripkeStructure(node.attributes.asAttrMap("ID"), states.toList, transitions.toList));
-      }
-      catch {
-        case _ : SAXParseException => None;
-      }
+    try {
+      Some(PartialKripkeStructure(node.attributes.asAttrMap("ID"), states.toList, transitions.toList));
+    }
+    catch {
+      case _ : SAXParseException => None;
+    }
   }
 
   def apply(filename : String) : Seq[PartialKripkeStructure] = {
