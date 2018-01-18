@@ -28,7 +28,7 @@ class NuSMV(smv : Seq[String], logFilename : Option[String])
 
   private var loopStart : Option[Int] = None;
 
-  override protected def command: String = "docker run -i nusmv";
+  override protected def command: String = "docker run -i torpedoframework/nusmv";
 
   override def input : Seq[String] = smv;
 
