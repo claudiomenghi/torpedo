@@ -24,7 +24,7 @@ import thrive.utilities.ProcessHandler
 class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
   extends ProcessHandler(logFilename) with SolverInstance {
 
-  override protected def command = "docker run -i torpedoframework/pltl-mup";
+  override protected def command = "docker run --rm -i torpedoframework/pltl-mup";
 
   protected var result : SolverResult = UNKNOWN;
 
