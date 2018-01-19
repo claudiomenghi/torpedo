@@ -82,14 +82,14 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-    if(args.length < 1){
+    if(args.length < 1)
       println("Usage: thrive <command> [options]");
-    }
-    args.head match {
-      case "check" => check(args.tail);
-      case "recheck" => recheck(args.tail);
-      case _ => println("Command not recognized!");
-    }
+    else
+      args.head match {
+        case "check" => check(args.tail);
+        case "recheck" => recheck(args.tail);
+        case _ => println("Command not recognized!");
+      }
   }
 
 }
