@@ -73,10 +73,10 @@ object Main {
         println("Error encountered!");
       }
       else if (pks.head.recheckNeeded(slice.head)){
-        println("Recheck needed!");
+        println("Run analysis again!");
       }
       else {
-        println("Recheck not needed!");
+        println("Recheck confirmed analysis result!");
       }
     }
   }
