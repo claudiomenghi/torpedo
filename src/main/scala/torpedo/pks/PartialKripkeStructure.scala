@@ -119,7 +119,7 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
   def toXML : Seq[String] = {
     val header = "<gxl xmlns:xbel='www.cs.toronto.edu/xbel' xmlns:xlink='xlink'>";
     val graph = "\t<graph ID='" + name + "' edgemode='directed'>";
-    val pks = states.flatMap(_.toXML(atomicFormulae) :+ "") ++ transitions.flatMap(_.toXML :+ "");
+    val pks = states.flatMap(_.toXML :+ "") ++ transitions.flatMap(_.toXML :+ "");
     val endGraph= "\t</graph>";
     val footer = "</gxl>";
     Seq(header, graph, "") ++ pks.map(l => "\t\t" + l) ++ Seq(endGraph, footer);

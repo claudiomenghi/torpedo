@@ -38,7 +38,7 @@ case class State(name : String, isInitial : Boolean, literals : Seq[Literal], ma
     (assignedLiterals.map((_, false)) ++ missingLiterals.map(f).map((_, true))).toSeq;
   }
 
-  private def literalsToXML(atomicFormulae : Set[AtomicFormula]) : Seq[String] = {
+  private def literalsToXML : Seq[String] = {
     def literalValue(literal: Literal) : String =
       literal match {
         case _: NegatedAtomicFormula => "F";
@@ -46,14 +46,13 @@ case class State(name : String, isInitial : Boolean, literals : Seq[Literal], ma
       }
 
     val tf = literals.map(l => l.atomicFormula.toXML(literalValue(l)));
-    val maybe = atomicFormulae.diff(literals.map(_.atomicFormula).toSet).map(_.atomicFormula.toXML("M"));
-    tf ++ maybe;
+    tf ++ maybe.map(_.atomicFormula.toXML("M"));;
   }
 
   private def initialXML : String = if(isInitial) " xbel:initial='true'" else "";
 
-  def toXML(atomicFormulae : Set[AtomicFormula]) : Seq[String] =
-    ("<node ID='" + name + "'" + initialXML + ">") +: literalsToXML(atomicFormulae).map(l => "\t" + l) :+ "</node>";
+  def toXML : Seq[String] =
+    ("<node ID='" + name + "'" + initialXML + ">") +: literalsToXML.map(l => "\t" + l) :+ "</node>";
 
 }
 
