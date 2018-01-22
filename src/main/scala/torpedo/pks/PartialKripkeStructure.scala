@@ -110,9 +110,11 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
             inputPrefix : Option[String], logPrefix : Option[String],
             traceFilename : Option[String], output : Option[String], slice : Option[String]) : ModelCheckerResult = {
     val result = checkProperty(mc, property, inputPrefix, logPrefix, traceFilename);
-    lazy val insights = proveProperty(result, property, solver, inputPrefix, logPrefix);
-    output.foreach(Writer.write(_, insights.flatMap(_.explain)));
-    slice.foreach(buildSlice(insights, _));
+    if(result == SATISFIED || result == POSSIBLY_SATISFIED) {
+      lazy val insights = proveProperty(result, property, solver, inputPrefix, logPrefix);
+      output.foreach(Writer.write(_, insights.flatMap(_.explain)));
+      slice.foreach(buildSlice(insights, _));
+    }
     result;
   }
 
