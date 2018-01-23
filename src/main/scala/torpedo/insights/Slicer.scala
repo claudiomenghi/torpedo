@@ -31,7 +31,7 @@ class Slicer(pks : PartialKripkeStructure) {
   private var stateLiterals : Map[State, Set[Literal]] = Map();
 
   private def process(state : State) : State = {
-    val result = state.restrict(stateLiterals(state));
+    val result = state.restrict(stateLiterals.getOrElse(state, Set()));
     if(clearInitialStates)
       result.clearInitial;
     else
