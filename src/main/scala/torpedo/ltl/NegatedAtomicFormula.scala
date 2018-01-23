@@ -23,7 +23,7 @@ case class NegatedAtomicFormula(atom : AtomicFormula) extends Literal {
 
   override def toPLTLMup : String = "~" + atom.toPLTLMup;
 
-  override def toTRP: String = "not (" + atom.toTRP + ")";
+  override def toTRP: String = "~ (" + atom.toTRP + ")";
 
   override def toSMV : String = "!(" + atom.toSMV + ")";
 
