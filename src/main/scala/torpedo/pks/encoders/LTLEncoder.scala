@@ -26,11 +26,14 @@ case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause](pks) 
 
   private def distinct : Seq[Clause] = {
     val sp = p.values.toArray;
-    val c = Array.range(0, sp.length - 1).map(i => sp(i) -> !Disjunction(Array.range(i+1, sp.length).map(sp)).simplify);
-    c.map(G).map(Clause(_, PKSConstraint));
+    for(
+      i <- Array.range(0, sp.length - 1);
+      j <- Array.range(i+1, sp.length - 1)
+    ) yield Clause(Before(False, sp(i) & sp(j)), PKSConstraint);
   }
 
-  private def transitionPredicate(from : State, to : Seq[State]) = G(p(from) -> X(Disjunction(to.map(p)).simplify));
+  private def transitionPredicate(from : State, to : Seq[State]) =
+    Before(False, p(from) & X(Conjunction(to.map(!p(_))).simplify));
 
   private def transitionPredicate : Seq[Clause] =
     transitionMap.map(t => Clause(transitionPredicate(t._1, t._2), StateTransition(t._1, t._2))).toSeq;
@@ -42,7 +45,7 @@ case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause](pks) 
     pks.states.map { state =>
       val (literals, dependOnMaybe) = state.approximation(pks.atomicFormulae, f).unzip;
       val insight = StatePredicate(state, literals.map(_.original).toSet, dependOnMaybe.exists(x => x));
-      Clause(G(p(state) -> Conjunction(literals).simplify), insight);
+      Clause(Before(False, p(state) & Disjunction(literals.map(!_)).simplify), insight);
     }
 
   private def slowStatePredicate(f : AtomicFormula => Literal) : Seq[Clause] =
@@ -50,7 +53,7 @@ case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause](pks) 
       s <- pks.states;
       (lit, maybeDependent) <- s.approximation(pks.atomicFormulae, f)
     }
-      yield Clause(G(p(s) -> lit), StatePredicate(s, Set(lit.original), maybeDependent));
+      yield Clause(Before(False, p(s) & !lit), StatePredicate(s, Set(lit.original), maybeDependent));
 
   private def statePredicate(f : AtomicFormula => Literal) : Seq[Clause] =
     if(USE_SLOW_STATE_PREDICATE)

@@ -35,40 +35,13 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
       returnCode;
   }
 
-  def normalized(formula: LtlFormula) : LtlFormula =
-    formula match {
-      case Before(f, g) => Before(normalized(f), normalized(g));
-      case G(f) => Before(False, normalized(!f))
-      case F(f) => Until(True, normalized(f))
-      case True => True;
-      case False => False;
-      case Conjunction(formulae) => Conjunction(formulae.map(normalized)).simplify;
-      case Disjunction(formulae) => Disjunction(formulae.map(normalized)).simplify;
-      case Negation(Negation(f)) => normalized(f);
-      case Negation(Conjunction(f)) => normalized(Disjunction(f.map(!_)));
-      case Negation(Disjunction(f)) => normalized(Conjunction(f.map(!_)));
-      case Negation(Implication(lhs, rhs)) => normalized(lhs & !rhs);
-      case Negation(Before(lhs, rhs)) => normalized(Until(!lhs, rhs));
-      case Negation(Until(lhs, rhs)) => normalized(Before(!lhs, rhs));
-      case Negation(X(f)) => normalized(X(!f));
-      case Negation(G(f)) => normalized(F(!f));
-      case Negation(F(f)) => normalized(G(!f));
-      case Negation(True) => False;
-      case Negation(False) => True;
-      case X(f) => X(normalized(f));
-      case NegatedAtomicFormula(atom) => !normalized(atom);
-      case a : AugmentedAtomicFormula => AtomicFormula(a.toPLTLMup);
-      case a : AtomicFormula => a;
-      case _ => formula;
-    }
-
   override protected def extractInsight(line : String) : Option[Insight] = {
     if(line.startsWith("MUS Size:"))
       None;
     else {
       val formula = LtlFormulaParser.parse(line.split(":")(1).trim);
-      val insights = clauses.map(clause => normalized(clause.clause) -> clause.insight).toMap;
-      insights.get(formula);
+      val insights = clauses.map(clause => clause.clause.toTRP -> clause.insight).toMap;
+      insights.get(formula.toTRP);
     }
   }
 
