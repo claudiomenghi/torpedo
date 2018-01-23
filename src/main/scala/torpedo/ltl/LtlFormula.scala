@@ -84,11 +84,11 @@ case class Conjunction(formulae : Seq[LtlFormula]) extends LtlFormula(10){
 
   override def &(rhs : LtlFormula) : LtlFormula = Conjunction(formulae :+ rhs);
 
-  override def toPLTLMup : String = formulae.map(_.enclose(_.toPLTLMup, priority)).mkString(" & ");
+  override def toPLTLMup : String = formulae.map(_.enclose(_.toPLTLMup, priority)).seq.sorted.mkString(" & ");
 
-  override def toTRP : String = formulae.map("(" + _.toTRP + ")").mkString(" & ");
+  override def toTRP : String = formulae.map("(" + _.toTRP + ")").seq.sorted.mkString(" & ");
 
-  override def toSMV : String = formulae.map("(" + _.toSMV + ")").mkString(" & ");
+  override def toSMV : String = formulae.map("(" + _.toSMV + ")").seq.sorted.mkString(" & ");
 
   override def toNNF : LtlFormula = Conjunction(formulae.map(_.toNNF));
 
@@ -123,11 +123,11 @@ case class Disjunction(formulae : Seq[LtlFormula]) extends LtlFormula(11){
 
   override def |(rhs : LtlFormula) : LtlFormula = Disjunction(formulae :+ rhs);
 
-  override def toPLTLMup : String = formulae.map(_.enclose(_.toPLTLMup, priority)).mkString(" | ");
+  override def toPLTLMup : String = formulae.map(_.enclose(_.toPLTLMup, priority)).seq.sorted.mkString(" | ");
 
-  override def toTRP : String = formulae.map("(" + _.toTRP + ")").mkString(" | ");
+  override def toTRP : String = formulae.map("(" + _.toTRP + ")").seq.sorted.mkString(" | ");
 
-  override def toSMV : String = formulae.map("(" + _.toSMV + ")").mkString(" | ");
+  override def toSMV : String = formulae.map("(" + _.toSMV + ")").seq.sorted.mkString(" | ");
 
   override def toNNF : LtlFormula = Disjunction(formulae.map(_.toNNF));
 
