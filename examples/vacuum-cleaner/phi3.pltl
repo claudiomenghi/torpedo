@@ -1,1 +1,1 @@
-G(!move & on -> suck)
+G(~move & on -> suck)
