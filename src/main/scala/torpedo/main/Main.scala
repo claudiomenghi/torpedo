@@ -50,9 +50,9 @@ object Main {
     }
   }
 
-  def check(args: Array[String]): Unit = {
+  def analysis(args: Array[String]): Unit = {
     if(args.length < 2){
-      println("Usage: torpedo check [options] <PKS XML file> <property file>");
+      println("Usage: torpedo analysis [options] <PKS XML file> <property file>");
     }
     else{
       val files = args.takeRight(2);
@@ -86,7 +86,7 @@ object Main {
       println("Usage: torpedo <command> [options]");
     else
       args.head match {
-        case "check" => check(args.tail);
+        case "analysis" => analysis(args.tail);
         case "recheck" => recheck(args.tail);
         case _ => println("Command not recognized!");
       }

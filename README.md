@@ -11,7 +11,7 @@ Install the required Docker containers running `./prepare.sh`
 from the `docker` folder.
 
 After compilation, 
-run `java -jar target/scala-2.12/torpedo.jar check [options] <PKS XML file> <property file>` to check a property.
+run `java -jar target/scala-2.12/torpedo.jar analysis [options] <PKS XML file> <property file>` to check a property.
 
 Possible options are:
 
