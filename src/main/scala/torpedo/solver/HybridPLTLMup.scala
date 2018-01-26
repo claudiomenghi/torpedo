@@ -19,6 +19,7 @@ package torpedo.solver
 
 import torpedo.insights.{Clause, Insight}
 import torpedo.ltl._
+import torpedo.main.{ProofFailure, Result, Success}
 
 class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends PLTLMup(clauses, logFilename) {
 
@@ -35,13 +36,16 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
       returnCode;
   }
 
-  override protected def extractInsight(line : String) : Option[Insight] = {
+  override protected def extractInsight(line : String) : Result[Option[Insight]] = {
     if(line.startsWith("MUS Size:"))
-      None;
+      Success(None);
     else {
       val formula = LtlFormulaParser.parse(line.split(":")(1).trim);
       val insights = clauses.map(clause => clause.clause.toTRP -> clause.insight).toMap;
-      insights.get(formula.toTRP);
+      formula match {
+        case Some(f) => Success(insights.get(f.toTRP));
+        case None => ProofFailure;
+      }
     }
   }
 

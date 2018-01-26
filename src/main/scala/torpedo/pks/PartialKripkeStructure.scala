@@ -22,6 +22,7 @@ import java.io.FileNotFoundException
 import org.xml.sax.SAXParseException
 import torpedo.insights.{Clause, Insight, Slicer}
 import torpedo.ltl._
+import torpedo.main._
 import torpedo.mc._
 import torpedo.pks.encoders.{LTLEncoder, SMVEncoder}
 import torpedo.solver.Solver
@@ -33,25 +34,27 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
 
   private[pks] val atomicFormulae : Set[AtomicFormula] = states.flatMap(_.atomicFormulae).toSet;
 
-  private def writeInputFile(input : Seq[String], filename : String) : Unit = Writer.write(filename, input);
+  private def writeInputFile(input : Seq[String], filename : String) : NoValue = Writer.write(filename, input);
 
   private def proveProperty(result : ModelCheckerResult, property : LtlFormula, solver : Solver,
-                            inputPrefix : Option[String], logPrefix : Option[String]) : Seq[Insight] = {
-    def retrieveInsights(model : Seq[Clause]) : Seq[Insight] = {
+                            inputPrefix : Option[String], logPrefix : Option[String]) : Result[Seq[Insight]] = {
+    def retrieveInsights(model : Seq[Clause]) : Result[Seq[Insight]] = {
       val solverInstance = solver.create(model, logPrefix.map(_ + "_solver.log"));
-      inputPrefix.foreach(prefix => writeInputFile(solverInstance.input, prefix + "_solver.in"));
+      val writeError = inputPrefix.foldLeft(NoError : NoValue){
+        (previous, prefix) => previous.flatMap(_ => writeInputFile(solverInstance.input, prefix + "_solver.in"));
+      }
       solverInstance.check();
-      solverInstance.insights;
+      writeError.flatMap(_ => solverInstance.insights);
     }
 
     result match {
       case SATISFIED => retrieveInsights(LTLEncoder(this).pessimistic(property));
       case POSSIBLY_SATISFIED => retrieveInsights(LTLEncoder(this).optimistic(property));
-      case _ => Seq();
+      case _ => Success(Seq());
     }
   }
 
-  private def buildSlice(insights : Seq[Insight], outputFilename : String) : Unit = {
+  private def buildSlice(insights : Seq[Insight], outputFilename : String) : NoValue = {
     val slicer = new Slicer(this);
     insights.foreach(_.computeSlice(slicer));
     val pks = slicer.slice();
@@ -59,27 +62,28 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
   }
 
   private def checkProperty(mc : ModelChecker, property : LtlFormula, inputPrefix : Option[String],
-                            logPrefix : Option[String], traceFilename : Option[String]) : ModelCheckerResult = {
+                            logPrefix : Option[String], traceFilename : Option[String]) : Result[ModelCheckerResult] = {
     val encoder = SMVEncoder(this);
-    def writeTrace(modelCheckerInstance: ModelCheckerInstance) : Unit =
-      traceFilename.foreach(Writer.write(_, encoder.trace(modelCheckerInstance.counterexample).output));
+    def writeTrace(modelCheckerInstance: ModelCheckerInstance) : NoValue =
+      traceFilename.foldLeft[NoValue](NoError){
+        (previous, next) =>
+          previous.flatMap(_ => Writer.write(next, encoder.trace(modelCheckerInstance.counterexample).output));
+      }
 
     val optimisticModelCheckerInstance = mc.create(encoder.optimistic(property), logPrefix.map(_ + "_mc_opt.log"));
     inputPrefix.foreach(prefix => writeInputFile(optimisticModelCheckerInstance.input, prefix + "_mc_opt.in"));
     val optimisticResult = optimisticModelCheckerInstance.check();
     if(optimisticResult == NOT_SATISFIED) {
-      writeTrace(optimisticModelCheckerInstance);
-      NOT_SATISFIED;
+      writeTrace(optimisticModelCheckerInstance).flatMap(_ => Success(NOT_SATISFIED));
     }
     else{
       val pessimisticModelChecker = mc.create(encoder.pessimistic(property), logPrefix.map(_ + "_mc_pes.log"));
       inputPrefix.foreach(prefix => writeInputFile(pessimisticModelChecker.input, prefix + "_mc_pes.in"));
       val pessimisticResult = pessimisticModelChecker.check();
-      if(pessimisticResult == SATISFIED) SATISFIED;
-      else if (optimisticResult.errorFound || pessimisticResult.errorFound) VERIFICATION_ERROR;
+      if(pessimisticResult == SATISFIED) Success(SATISFIED);
+      else if (optimisticResult.errorFound || pessimisticResult.errorFound) ModelCheckerFailure;
       else {
-        writeTrace(pessimisticModelChecker);
-        POSSIBLY_SATISFIED;
+        writeTrace(pessimisticModelChecker).flatMap(_ => Success(POSSIBLY_SATISFIED));
       }
     }
   }
@@ -108,14 +112,23 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
 
   def check(solver : Solver, mc : ModelChecker, property : LtlFormula,
             inputPrefix : Option[String], logPrefix : Option[String],
-            traceFilename : Option[String], output : Option[String], slice : Option[String]) : ModelCheckerResult = {
+            traceFilename : Option[String], output : Option[String], slice : Option[String])
+  : Result[ModelCheckerResult] = {
     val result = checkProperty(mc, property, inputPrefix, logPrefix, traceFilename);
-    if(result == SATISFIED || result == POSSIBLY_SATISFIED) {
-      lazy val insights = proveProperty(result, property, solver, inputPrefix, logPrefix);
-      output.foreach(Writer.write(_, insights.flatMap(_.explain)));
-      slice.foreach(buildSlice(insights, _));
+
+    result.flatMap{modelCheckerResult =>
+      if(modelCheckerResult == SATISFIED || modelCheckerResult == POSSIBLY_SATISFIED) {
+        lazy val insights = proveProperty(modelCheckerResult, property, solver, inputPrefix, logPrefix);
+        val tpSuccessful =
+          output.map(o => insights.flatMap(i => Writer.write(o, i.flatMap(_.explain)))).getOrElse(NoError);
+        val sliceSuccessful =
+          tpSuccessful.flatMap(_ => slice.map(s => insights.flatMap(i => buildSlice(i, s))).getOrElse(NoError));
+        sliceSuccessful.flatMap(_ => Success(modelCheckerResult));
+      }
+      else{
+        Success(modelCheckerResult);
+      }
     }
-    result;
   }
 
   def toXML : Seq[String] = {
@@ -127,7 +140,7 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
     Seq(header, graph, "") ++ pks.map(l => "\t\t" + l) ++ Seq(endGraph, footer);
   }
 
-  def writeXML(filename : String) : Unit = Writer.write(filename, toXML);
+  def writeXML(filename : String) : NoValue = Writer.write(filename, toXML);
 
 }
 
@@ -181,14 +194,17 @@ object PartialKripkeStructure {
     }
   }
 
-  def apply(filename : String) : Seq[PartialKripkeStructure] = {
+  def apply(filename : String) : Result[PartialKripkeStructure] = {
     try {
       val document = XML.loadFile(filename);
-      (document \ "graph").flatMap(extractGraph);
+      (document \ "graph").flatMap(extractGraph).headOption match {
+        case Some(value) => Success(value);
+        case None => InvalidFileFailure(filename);
+      }
     }
     catch {
-      case _ : FileNotFoundException => Seq();
-      case _ : SAXParseException => Seq();
+      case _ : FileNotFoundException => FileNotFoundFailure(filename);
+      case _ : SAXParseException => InvalidFileFailure(filename);
     }
   }
 

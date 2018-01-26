@@ -20,34 +20,33 @@ package torpedo.main
 import java.io.FileNotFoundException
 
 import torpedo.ltl._
+import torpedo.mc.ModelCheckerResult
 import torpedo.pks.PartialKripkeStructure
 
 import scala.io.Source
 
 object Main {
 
-  private def readProperty(filename : String) : Option[LtlFormula] = {
+  private def readProperty(filename : String) : Result[LtlFormula] = {
     try {
       val clauses = Source.fromFile(filename).getLines().map(LtlFormulaParser.parse).toSeq;
-      Some(Conjunction(clauses).simplify);
+      if(clauses.contains(None))
+        InvalidFileFailure(filename);
+      else
+        Success(Conjunction(clauses.flatten).simplify);
     }
     catch {
-      case _ : FileNotFoundException => None;
+      case _ : FileNotFoundException => FileNotFoundFailure(filename);
     }
   }
 
-  private def checkProperty(ksFilename : String, propertyFilename : String, opt: Options) : Unit = {
-    val ks = PartialKripkeStructure(ksFilename);
-    val property = readProperty(propertyFilename);
-    if(ks.isEmpty)
-      println("Input/output error on PKS!");
-    else if(property.isEmpty)
-      println("Input/output error on property!");
-    else {
-      val result =
-        ks.head.check(opt.solver, opt.modelChecker, property.get, opt.input, opt.log, opt.trace, opt.output, opt.slice);
-      println(result);
+  private def checkProperty(pksFile : String, propertyFile : String, opt: Options) : Result[ModelCheckerResult] = {
+    for{
+      ks <- PartialKripkeStructure(pksFile);
+      property <- readProperty(propertyFile);
+      result <- ks.check(opt.solver, opt.modelChecker, property, opt.input, opt.log, opt.trace, opt.output, opt.slice)
     }
+      yield result;
   }
 
   def analysis(args: Array[String]): Unit = {
@@ -58,18 +57,25 @@ object Main {
       val files = args.takeRight(2);
       val options = DefaultOptions;
       if(options.processCommandLineArguments(args.dropRight(2).toList))
-        checkProperty(files.head, files(1), options);
+        println(checkProperty(files.head, files(1), options));
     }
   }
 
-  def recheck(args: Array[String]): Unit = {
+  private def recheck(pksFilename : String, sliceFilename : String) : Result[Boolean] = {
+    for {
+      pks <- PartialKripkeStructure(pksFilename);
+      slice <- PartialKripkeStructure(sliceFilename)
+    }
+      yield pks.recheckNeeded(slice);
+  }
+
+  def recheck(args: Array[String]) : Unit = {
     if(args.length != 2){
       println("Usage: torpedo recheck <PKS XML file> <Slice XML file>");
     }
     else{
-      val pks = PartialKripkeStructure(args(0));
-      val slice = PartialKripkeStructure(args(1));
-      if(pks.isEmpty || slice.isEmpty){
+      println(recheck(args(0), args(1)));
+      /*if(pks.isEmpty || slice.isEmpty){
         println("Error encountered!");
       }
       else if (pks.head.recheckNeeded(slice.head)){
@@ -77,7 +83,7 @@ object Main {
       }
       else {
         println("Recheck confirmed analysis result!");
-      }
+      }*/
     }
   }
 

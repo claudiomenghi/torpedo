@@ -52,6 +52,6 @@ object LtlFormulaParser extends RegexParsers {
   private val equivalence : Parser[LtlFormula] = repsep(implication, "<->"|"="|"<==>"|"<=>").^^(
     _.reduceLeft((x,y) => !x & !y | x & y));
 
-  def parse(line : String) : LtlFormula = parseAll(expression, line).get;
+  def parse(line : String) : Option[LtlFormula] = parseAll(expression, line).map(Some(_)).getOrElse(None);
 
 }

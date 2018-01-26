@@ -15,28 +15,10 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   *
   */
-package torpedo.utilities
+package torpedo
 
-import java.io.{FileWriter, IOException}
+package object main {
 
-import torpedo.main.{NoError, NoValue, WriteFailure}
-
-object Writer {
-
-  private def write(filename : String, append : Boolean, lines : Seq[String]) : NoValue = {
-    try {
-      val file = new FileWriter(filename, append);
-      lines.foreach(line => file.write(line + "\n"));
-      file.close();
-      NoError;
-    }
-    catch {
-      case _ : IOException => WriteFailure(filename);
-    }
-  }
-
-  def write(filename : String, lines : Seq[String]) : NoValue = write(filename, append = false, lines);
-
-  def append(filename : String, lines : Seq[String]) : NoValue = write(filename, append = true, lines);
+  type NoValue = Result[Null];
 
 }

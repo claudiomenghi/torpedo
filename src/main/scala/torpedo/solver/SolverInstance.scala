@@ -18,6 +18,7 @@
 package torpedo.solver
 
 import torpedo.insights.Insight
+import torpedo.main.Result
 
 trait SolverInstance {
 
@@ -25,6 +26,6 @@ trait SolverInstance {
 
   def check() : SolverResult
 
-  def insights : Seq[Insight];
+  def insights : Result[Seq[Insight]];
 
 }

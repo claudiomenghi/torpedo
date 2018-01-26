@@ -19,6 +19,7 @@ package torpedo.solver
 
 import torpedo.insights.{Clause, Insight}
 import torpedo.ltl.LtlFormula
+import torpedo.main.{Failure, ProofFailure, Result, Success}
 import torpedo.utilities.ProcessHandler
 
 class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
@@ -33,9 +34,9 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
 
   private var unsatCore = false;
 
-  private var actualInsights : Seq[Insight] = Seq[Insight]();
+  private var actualInsights : Result[Seq[Insight]] = Success(Seq[Insight]());
 
-  override def insights : Seq[Insight] = actualInsights;
+  override def insights : Result[Seq[Insight]] = actualInsights;
 
   private def extractClauseIndex(line : String) : Option[Int] = {
     val value = line.split(":").headOption;
@@ -47,8 +48,8 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
     }
   }
 
-  protected def extractInsight(line : String) : Option[Insight] =
-    extractClauseIndex(line).map(possibleInsights).filterNot(actualInsights.contains);
+  protected def extractInsight(line : String) : Result[Option[Insight]] =
+    actualInsights.flatMap(is =>  Success(extractClauseIndex(line).map(possibleInsights).filterNot(is.contains)));
 
   override protected def processLine(line : String) : Unit = {
     if(line.startsWith("Satisfiable"))
@@ -59,8 +60,10 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
     if(unsatCore) {
       val insight = extractInsight(line);
       insight match {
-        case None => unsatCore = false;
-        case Some(i) => actualInsights = actualInsights :+ i;
+        case Success(None) => unsatCore = false;
+        case Success(Some(i)) => actualInsights = actualInsights.flatMap(ai => Success(ai :+ i));
+        case error : Failure => actualInsights = error;
+        case _ => actualInsights = ProofFailure;
       }
     }
 
