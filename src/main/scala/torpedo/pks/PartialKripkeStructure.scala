@@ -43,7 +43,6 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
       val writeError = inputPrefix.foldLeft(NoError : NoValue){
         (previous, prefix) => previous.flatMap(_ => writeInputFile(solverInstance.input, prefix + "_solver.in"));
       }
-      solverInstance.check();
       writeError.flatMap(_ => solverInstance.insights);
     }
 

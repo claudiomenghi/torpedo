@@ -70,21 +70,14 @@ object Main {
   }
 
   def recheck(args: Array[String]) : Unit = {
-    if(args.length != 2){
+    def asString(result : Boolean) : String =
+      if(result) "Run analysis again!";
+      else "Recheck confirmed analysis result!"
+
+    if(args.length != 2)
       println("Usage: torpedo recheck <PKS XML file> <Slice XML file>");
-    }
-    else{
-      println(recheck(args(0), args(1)));
-      /*if(pks.isEmpty || slice.isEmpty){
-        println("Error encountered!");
-      }
-      else if (pks.head.recheckNeeded(slice.head)){
-        println("Run analysis again!");
-      }
-      else {
-        println("Recheck confirmed analysis result!");
-      }*/
-    }
+    else
+      println(recheck(args(0), args(1)).map(asString));
   }
 
   def main(args: Array[String]): Unit = {
