@@ -20,7 +20,7 @@ package torpedo.pks
 import java.io.FileNotFoundException
 
 import org.xml.sax.SAXParseException
-import torpedo.insights.{Clause, Insight, Slicer}
+import torpedo.topologicalproof.{Clause, TPClause, Slicer}
 import torpedo.ltl._
 import torpedo.main._
 import torpedo.mc._
@@ -36,26 +36,26 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
 
   private def writeInputFile(input : Seq[String], filename : String) : NoValue = Writer.write(filename, input);
 
-  private def proveProperty(result : ModelCheckerResult, property : LtlFormula, solver : Solver,
-                            inputPrefix : Option[String], logPrefix : Option[String]) : Result[Seq[Insight]] = {
-    def retrieveInsights(model : Seq[Clause]) : Result[Seq[Insight]] = {
+  private def computeTP(result : ModelCheckerResult, property : LtlFormula, solver : Solver,
+                            inputPrefix : Option[String], logPrefix : Option[String]) : Result[Seq[TPClause]] = {
+    def retrieveTopologicalProof(model : Seq[Clause]) : Result[Seq[TPClause]] = {
       val solverInstance = solver.create(model, logPrefix.map(_ + "_solver.log"));
       val writeError = inputPrefix.foldLeft(NoError : NoValue){
         (previous, prefix) => previous.flatMap(_ => writeInputFile(solverInstance.input, prefix + "_solver.in"));
       }
-      writeError.flatMap(_ => solverInstance.insights);
+      writeError.flatMap(_ => solverInstance.topologicalProof);
     }
 
     result match {
-      case SATISFIED => retrieveInsights(LTLEncoder(this).pessimistic(property));
-      case POSSIBLY_SATISFIED => retrieveInsights(LTLEncoder(this).optimistic(property));
+      case SATISFIED => retrieveTopologicalProof(LTLEncoder(this).pessimistic(property));
+      case POSSIBLY_SATISFIED => retrieveTopologicalProof(LTLEncoder(this).optimistic(property));
       case _ => Success(Seq());
     }
   }
 
-  private def buildSlice(insights : Seq[Insight], outputFilename : String) : NoValue = {
+  private def buildSlice(topologicalProof : Seq[TPClause], outputFilename : String) : NoValue = {
     val slicer = new Slicer(this);
-    insights.foreach(_.computeSlice(slicer));
+    topologicalProof.foreach(_.computeSlice(slicer));
     val pks = slicer.slice();
     pks.writeXML(outputFilename);
   }
@@ -117,11 +117,11 @@ case class PartialKripkeStructure(name : String, states : List[State], transitio
 
     result.flatMap{modelCheckerResult =>
       if(modelCheckerResult == SATISFIED || modelCheckerResult == POSSIBLY_SATISFIED) {
-        lazy val insights = proveProperty(modelCheckerResult, property, solver, inputPrefix, logPrefix);
+        lazy val topologicalProof = computeTP(modelCheckerResult, property, solver, inputPrefix, logPrefix);
         val tpSuccessful =
-          output.map(o => insights.flatMap(i => Writer.write(o, i.flatMap(_.explain)))).getOrElse(NoError);
+          output.map(o => topologicalProof.flatMap(i => Writer.write(o, i.flatMap(_.explain)))).getOrElse(NoError);
         val sliceSuccessful =
-          tpSuccessful.flatMap(_ => slice.map(s => insights.flatMap(i => buildSlice(i, s))).getOrElse(NoError));
+          tpSuccessful.flatMap(_ => slice.map(s => topologicalProof.flatMap(i => buildSlice(i, s))).getOrElse(NoError));
         sliceSuccessful.flatMap(_ => Success(modelCheckerResult));
       }
       else{

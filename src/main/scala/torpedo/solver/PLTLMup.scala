@@ -17,7 +17,7 @@
   */
 package torpedo.solver
 
-import torpedo.insights.{Clause, Insight}
+import torpedo.topologicalproof.{Clause, TPClause}
 import torpedo.ltl.LtlFormula
 import torpedo.main._
 import torpedo.utilities.ProcessHandler
@@ -30,30 +30,30 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
   protected var result : SolverResult = UNKNOWN;
 
   private val formulae = clauses.map(_.clause);
-  private val possibleInsights = clauses.map(_.insight).toArray;
+  private val possibleTPClauses = clauses.map(_.tpClause).toArray;
 
   private var unsatCore = false;
 
-  private var actualInsights : Seq[Insight] = Seq[Insight]();
+  private var actualTPClauses : Seq[TPClause] = Seq[TPClause]();
 
-  private var insightsError : NoValue = NoError;
+  private var topologicalProofError : NoValue = NoError;
 
-  override def insights : Result[Seq[Insight]] =
+  override def topologicalProof : Result[Seq[TPClause]] =
     if(check() == ERROR) ProofFailure;
-    else insightsError.map(_ => actualInsights);
+    else topologicalProofError.map(_ => actualTPClauses);
 
   private def extractClauseIndex(line : String) : Option[Int] = {
     val value = line.split(":").headOption;
     try {
       val index = value.map(_.toInt);
-      index.filter(i => i >= 0 && i < possibleInsights.length);
+      index.filter(i => i >= 0 && i < possibleTPClauses.length);
     } catch {
       case _ : NumberFormatException => None;
     }
   }
 
-  protected def extractInsight(line : String) : Result[Option[Insight]] =
-    Success(extractClauseIndex(line).map(possibleInsights).filterNot(actualInsights.contains));
+  protected def extractTopologicalProofClause(line : String) : Result[Option[TPClause]] =
+    Success(extractClauseIndex(line).map(possibleTPClauses).filterNot(actualTPClauses.contains));
 
   override protected def processLine(line : String) : Unit = {
     if(line.startsWith("Satisfiable"))
@@ -62,12 +62,11 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
       result = UNSATISFIABLE;
 
     if(unsatCore) {
-      val insight = extractInsight(line);
-      insight match {
+      extractTopologicalProofClause(line) match {
         case Success(None) => unsatCore = false;
-        case Success(Some(i)) => actualInsights = actualInsights :+ i;
-        case error : Failure => insightsError = error;
-        case _ => insightsError = ProofFailure;
+        case Success(Some(i)) => actualTPClauses = actualTPClauses :+ i;
+        case error : Failure => topologicalProofError = error;
+        case _ => topologicalProofError = ProofFailure;
       }
     }
 

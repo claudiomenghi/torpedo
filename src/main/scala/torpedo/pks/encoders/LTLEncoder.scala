@@ -16,7 +16,7 @@
   *
   */
 package torpedo.pks.encoders
-import torpedo.insights._
+import torpedo.topologicalproof._
 import torpedo.ltl._
 import torpedo.pks.{PartialKripkeStructure, State}
 
@@ -44,8 +44,8 @@ case class LTLEncoder(pks: PartialKripkeStructure) extends Encoder[Clause](pks) 
   private def fastStatePredicate(f : AtomicFormula => Literal) : Seq[Clause] =
     pks.states.map { state =>
       val (literals, dependOnMaybe) = state.approximation(pks.atomicFormulae, f).unzip;
-      val insight = StatePredicate(state, literals.map(_.original).toSet, dependOnMaybe.exists(x => x));
-      Clause(Before(False, p(state) & Disjunction(literals.map(!_)).simplify), insight);
+      val topologicalProofClause = StatePredicate(state, literals.map(_.original).toSet, dependOnMaybe.exists(x => x));
+      Clause(Before(False, p(state) & Disjunction(literals.map(!_)).simplify), topologicalProofClause);
     }
 
   private def slowStatePredicate(f : AtomicFormula => Literal) : Seq[Clause] =

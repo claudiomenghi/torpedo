@@ -15,18 +15,14 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   *
   */
-package torpedo.insights
+package torpedo.topologicalproof
 
-import torpedo.pks.State
+trait TPClause {
 
-case class InitialState(states : Seq[State]) extends Insight {
+  def computeSlice(slicer : Slicer) : Unit = {};
 
-  private def text : String =
-    if(states.lengthCompare(1) == 0) " is the initial state";
-    else " are initial states";
+  def explain : Option[String] = None;
 
-  override def explain : Option[String] = Some(states.map(_.name).mkString(", ") + text);
-
-  override def computeSlice(slicer: Slicer): Unit = slicer.keepInitialStates();
+  def dependOnMaybe : Boolean = false;
 
 }

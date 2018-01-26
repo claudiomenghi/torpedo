@@ -15,14 +15,20 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   *
   */
-package torpedo.insights
+package torpedo.topologicalproof
 
-import torpedo.ltl.LtlFormula
+import torpedo.ltl.Literal
+import torpedo.pks.State
 
-case class Clause(clause : LtlFormula, insight : Insight) {
+case class StatePredicate(state : State, literals : Set[Literal], override val dependOnMaybe : Boolean)
+  extends TPClause {
 
-  def toPLTLMup : String = clause.toPLTLMup;
+  private def literalText : String =
+    if(literals.size == 1) literals.head.toPLTLMup;
+    else literals.map(_.toPLTLMup).mkString("{", ", ", "}");
 
-  def toTRP : String = clause.toTRP;
+  override def explain : Option[String] = Some(literalText + " (" + state.name + ")");
+
+  override def computeSlice(slicer: Slicer): Unit = slicer.keepProposition(state, literals);
 
 }

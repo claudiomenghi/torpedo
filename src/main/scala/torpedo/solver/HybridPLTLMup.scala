@@ -17,7 +17,7 @@
   */
 package torpedo.solver
 
-import torpedo.insights.{Clause, Insight}
+import torpedo.topologicalproof.{Clause, TPClause}
 import torpedo.ltl._
 import torpedo.main.{ProofFailure, Result, Success}
 
@@ -36,14 +36,14 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
       returnCode;
   }
 
-  override protected def extractInsight(line : String) : Result[Option[Insight]] = {
+  override protected def extractTopologicalProofClause(line : String) : Result[Option[TPClause]] = {
     if(line.startsWith("MUS Size:"))
       Success(None);
     else {
       val formula = LtlFormulaParser.parse(line.split(":")(1).trim);
-      val insights = clauses.map(clause => clause.clause.toTRP -> clause.insight).toMap;
+      val topologicalProof = clauses.map(clause => clause.clause.toTRP -> clause.tpClause).toMap;
       formula match {
-        case Some(f) => Success(insights.get(f.toTRP));
+        case Some(f) => Success(topologicalProof.get(f.toTRP));
         case None => ProofFailure;
       }
     }

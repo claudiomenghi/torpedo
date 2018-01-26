@@ -17,7 +17,7 @@
   */
 package torpedo.solver
 
-import torpedo.insights.Insight
+import torpedo.topologicalproof.TPClause
 import torpedo.main.Result
 
 trait SolverInstance {
@@ -26,6 +26,6 @@ trait SolverInstance {
 
   def check() : SolverResult
 
-  def insights : Result[Seq[Insight]];
+  def topologicalProof : Result[Seq[TPClause]];
 
 }

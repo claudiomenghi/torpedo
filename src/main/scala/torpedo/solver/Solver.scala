@@ -17,7 +17,7 @@
   */
 package torpedo.solver
 
-import torpedo.insights.Clause
+import torpedo.topologicalproof.Clause
 
 trait Solver {
 

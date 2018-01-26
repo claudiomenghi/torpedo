@@ -15,6 +15,20 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   *
   */
-package torpedo.insights
+package torpedo.topologicalproof
 
-object PKSConstraint extends Insight;
+import torpedo.pks.State
+
+case class StateTransition(state : State, next : Seq[State]) extends TPClause {
+
+  private def nextStates : String =
+    next.size match {
+      case 1 => next.head.name;
+      case _ => next.map(_.name).mkString("{", ", ", "}");
+    }
+
+  override def explain : Option[String] = Some(state.name + " -> " + nextStates);
+
+  override def computeSlice(slicer: Slicer): Unit = slicer.keepTransition(state, next);
+
+}

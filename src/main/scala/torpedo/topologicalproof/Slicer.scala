@@ -15,7 +15,7 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   *
   */
-package torpedo.insights
+package torpedo.topologicalproof
 
 import torpedo.ltl.Literal
 import torpedo.pks.{PartialKripkeStructure, State, Transition}

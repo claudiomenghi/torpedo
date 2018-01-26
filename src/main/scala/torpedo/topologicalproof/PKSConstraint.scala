@@ -15,6 +15,6 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   *
   */
-package torpedo.insights
+package torpedo.topologicalproof
 
-object Property extends Insight;
+object PKSConstraint extends TPClause;
