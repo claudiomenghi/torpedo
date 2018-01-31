@@ -20,7 +20,7 @@ package torpedo.pks
 case class Trace(trace : Seq[State], loopStart : Option[Int]) {
   loopStart.foreach(l => require(l >= 0 && l < trace.size));
 
-  private def loopJump : Option[Int] = loopStart.map(ls => Math.min(ls + 1, trace.size - 1));
+  private def loopJump : Option[Int] = loopStart.map(ls => Math.min(ls, trace.size - 1));
 
   private def loop : Seq[String] = loopJump.map(l => trace.size + " : GOTO " + l).toSeq;
 
