@@ -23,9 +23,16 @@ import torpedo.pks.State
 case class StatePredicate(state : State, literals : Set[Literal], override val dependOnMaybe : Boolean)
   extends TPClause {
 
+  private def getLiteral(literal: Literal) : String = {
+    if(state.maybe.contains(literal.atomicFormula))
+      "?" + literal.atomicFormula.toPLTLMup;
+    else
+      literal.toPLTLMup;
+  }
+
   private def literalText : String =
-    if(literals.size == 1) literals.head.toPLTLMup;
-    else literals.map(_.toPLTLMup).mkString("{", ", ", "}");
+    if(literals.size == 1) getLiteral(literals.head);
+    else literals.map(getLiteral).mkString("{", ", ", "}");
 
   override def explain : Option[String] = Some(literalText + " (" + state.name + ")");
 
