@@ -26,6 +26,8 @@ class NuSMV(smv : Seq[String], logFilename : Option[String])
 
   private var trace : Seq[String] = Seq();
 
+  private var lastState : Option[String] = None;
+
   private var loopStart : Option[Int] = None;
 
   override protected def command: String = "docker run --rm -i torpedoframework/nusmv";
@@ -49,11 +51,13 @@ class NuSMV(smv : Seq[String], logFilename : Option[String])
       result = SATISFIED;
     if(isPropertyNotSatisfied(line))
       result = NOT_SATISFIED;
-    val cl = line.split(" ").mkString("")
+    val cl = line.split(" ").mkString("");
     if(cl == "--Loopstartshere")
-      loopStart = Some(trace.size);
+      loopStart = Some(trace.size + lastState.size);
     if(cl.startsWith("state=s"))
-      trace = trace :+ cl.split("=").last;
+      lastState = Some(cl.split("=").last);
+    if(cl.startsWith("->State:") && lastState.nonEmpty)
+      trace = trace :+ lastState.get;
   }
 
   override def counterexample = Counterexample(trace, loopStart);
