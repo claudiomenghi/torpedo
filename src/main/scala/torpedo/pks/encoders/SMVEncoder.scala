@@ -51,8 +51,10 @@ case class SMVEncoder(pks: PartialKripkeStructure) extends Encoder[String](pks) 
 
     val propositionState = pks.states.flatMap(stateAtomicFormulae(_, f)).groupBy(_._1).map(x => x._1 -> x._2.map(_._2));
     val propositions = propositionState.map(y => y._1 + " := state in " + y._2.mkString("{", ", ", "}") + ";");
+    val afs = pks.atomicFormulae.flatMap(_.complementClosure).map(_.atomicFormula.toPLTLMup);
+    val missing = (afs -- propositionState.keys).map(_ + " := FALSE;");
 
-    "ASSIGN" +: (states ++ propositions).map("\t" + _);
+    "ASSIGN" +: (states ++ propositions ++ missing).map("\t" + _);
   }
 
   private def ltlSpecification(property : LtlFormula) : Seq[String] =
