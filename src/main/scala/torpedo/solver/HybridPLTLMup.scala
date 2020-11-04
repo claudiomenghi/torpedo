@@ -53,11 +53,11 @@ class HybridPLTLMup(clauses : Seq[Clause], logFilename : Option[String]) extends
 
 object HybridPLTLMup extends Solver{
 
-  override def check(clauses: Seq[Clause]) : SolverResult = new HybridPLTLMup(clauses, None).check();
+  override def check(clauses: Seq[Clause], k: Int) : SolverResult = new HybridPLTLMup(clauses, None).check();
 
-  override def check(clauses: Seq[Clause], logFilename : Option[String]) : SolverResult =
+  override def check(clauses: Seq[Clause], logFilename : Option[String], k: Int) : SolverResult =
     new HybridPLTLMup(clauses, logFilename).check();
 
-  override def create(clauses: Seq[Clause], logFilename: Option[String]) = new HybridPLTLMup(clauses, logFilename);
+  override def create(clauses: Seq[Clause], logFilename: Option[String],k: Int) = new HybridPLTLMup(clauses, logFilename);
 }
 

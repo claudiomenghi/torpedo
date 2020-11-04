@@ -81,6 +81,7 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
+    val currentDirectory = new java.io.File(".").getCanonicalPath
     if(args.length < 1)
       println("Usage: torpedo <command> [options]");
     else

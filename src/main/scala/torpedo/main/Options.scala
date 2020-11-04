@@ -18,7 +18,7 @@
 package torpedo.main
 
 import torpedo.mc.{ModelChecker, NuSMV}
-import torpedo.solver.{HybridPLTLMup, PLTLMup, Solver}
+import torpedo.solver.{HybridPLTLMup, PLTLMup, Solver, Z3}
 
 sealed class Options(var solver : Solver, var modelChecker : ModelChecker, var trace : Option[String],
                      var input : Option[String], var log : Option[String], var output : Option[String],
@@ -32,6 +32,7 @@ sealed class Options(var solver : Solver, var modelChecker : ModelChecker, var t
       case "-l" :: filename :: rest => log = Some(filename); processCommandLineArguments(rest);
       case "-o" :: filename :: rest => output = Some(filename); processCommandLineArguments(rest);
       case "-s" :: "pltlmup" :: rest => solver = PLTLMup; processCommandLineArguments(rest);
+      case "-s" :: "z3" :: rest => solver = Z3; processCommandLineArguments(rest);
       case "-s" :: "hybrid" :: rest => solver = HybridPLTLMup; processCommandLineArguments(rest);
       case "-t" :: filename :: rest => slice = Some(filename); processCommandLineArguments(rest);
       case Nil => true;
@@ -40,7 +41,7 @@ sealed class Options(var solver : Solver, var modelChecker : ModelChecker, var t
 
 }
 
-case object DefaultOptions extends Options(HybridPLTLMup, NuSMV, None, None, None, None, None);
+case object DefaultOptions extends Options(Z3, NuSMV, None, None, None, None, None);
 
 
 

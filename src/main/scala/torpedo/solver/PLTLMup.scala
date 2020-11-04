@@ -84,10 +84,10 @@ class PLTLMup(clauses : Seq[Clause], logFilename : Option[String])
 
 object PLTLMup extends Solver{
 
-  override def check(clauses: Seq[Clause]) : SolverResult = new PLTLMup(clauses, None).check();
+  override def check(clauses: Seq[Clause], k: Int) : SolverResult = new PLTLMup(clauses, None).check();
 
-  override def check(clauses: Seq[Clause], logFilename : Option[String]) : SolverResult =
+  override def check(clauses: Seq[Clause], logFilename : Option[String], k: Int) : SolverResult =
     new PLTLMup(clauses, logFilename).check();
 
-  override def create(clauses: Seq[Clause], logFilename : Option[String]) = new PLTLMup(clauses, logFilename);
+  override def create(clauses: Seq[Clause], logFilename : Option[String],k: Int) = new PLTLMup(clauses, logFilename);
 }

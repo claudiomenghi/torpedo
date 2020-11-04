@@ -21,12 +21,12 @@ import torpedo.topologicalproof.Clause
 
 trait Solver {
 
-  def check(formulae : Seq[Clause]) : SolverResult;
+  def check(formulae : Seq[Clause], k: Int) : SolverResult;
 
-  def check(clause : Clause) : SolverResult = check(Seq(clause));
+  def check(clause : Clause, k: Int) : SolverResult = check(Seq(clause),k);
 
-  def check(clauses : Seq[Clause], logFilename : Option[String]) : SolverResult;
+  def check(clauses : Seq[Clause], logFilename : Option[String], k: Int) : SolverResult;
 
-  def create(clauses  : Seq[Clause], logFilename : Option[String]) : SolverInstance;
+  def create(clauses: Seq[Clause], logFilename : Option[String], k: Int): SolverInstance;
 
 }
